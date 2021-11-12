@@ -13,7 +13,7 @@ import time
 import sys
 from random import random
 
-SF2 = "GeneralUser_GS_v1.471.sf2"
+SF2 = "Studio_FG460s_II_Pro_Guitar_Pack.sf2"
 progression = [
     "I",
     "vi",

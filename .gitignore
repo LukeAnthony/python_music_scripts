@@ -6,8 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
-# ignore soundfont
+# ignore soundfonts
 GeneralUser GS v1.471.sf2
+Studio_FG460s_II_Pro_Guitar_Pack.sf2
 
 # Distribution / packaging
 .Python
