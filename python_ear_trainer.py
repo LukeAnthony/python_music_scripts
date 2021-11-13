@@ -5,6 +5,7 @@ import mingus.core.scales as scales
 from mingus.containers import Note
 from mingus.containers import NoteContainer
 from mingus.midi import fluidsynth
+import random
 
 def isChord(input):
 	return input == "C" or input == "c"
@@ -36,11 +37,16 @@ class RandomChord:
 
 
 def getRandomChord(octave, range):
+
+	print(random.randint(0,11))
 	print("TODO")
 
 
 def getRandomNote(octave, range):
 	print("TODO")
+
+	# https://github.com/bspaans/python-mingus/blob/master/mingus/core/notes.py#L36
+	randomNote = notes.int_to_note(random.randint(0,11), "b" if random.random() > .5 else "#")
 
 
 
@@ -51,7 +57,12 @@ totalAttempts = 0
 percentCorrect = 0.0
 
 fluidsynth.init("Studio_FG460s_II_Pro_Guitar_Pack.sf2")
-fluidsynth.play_Note(Note())
+# fluidsynth.play_Note(Note())
+
+
+
+
+exit()
 
 noteRange = int(input("Starting at E, How many notes would you like to shuffle between. Ex) 1 = (E), 2 = (E,F), 3 = (E,F,F#/Gb)... "))
 if( noteRange < 1 or noteRange > 12 ):
