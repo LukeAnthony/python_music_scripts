@@ -20,3 +20,27 @@ print(cMajScale)
 cHarmonicMajor = scales.HarmonicMajor("C")
 print("c harmonic major:")
 print(cHarmonicMajor)
+
+
+randomChord = chords.major_triad("C")
+print(randomChord)
+print(chords.first_inversion(randomChord))
+print(chords.second_inversion(randomChord))
+print(chords.third_inversion(randomChord))
+# also do inversions
+
+# https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L35
+
+# triads
+# 	supports major, minor, diminished, augmented, sus2, sus4
+# sevenths
+#	
+
+
+number = 9
+if( number < 10 ):
+	pass
+elif( number < 20 ):
+	print(number)
+else:
+	print(number)
