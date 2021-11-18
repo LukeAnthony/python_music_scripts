@@ -1,7 +1,12 @@
 import mingus.core.notes as notes
 import mingus.core.keys as keys
+from mingus.containers import Note
 import mingus.core.chords as chords
 import mingus.core.scales as scales
+from mingus.midi import fluidsynth
+from mingus.containers import NoteContainer
+from mingus.containers import Bar
+import random
 
 # should return F major or d minor
 print(keys.get_key(-1))
@@ -36,11 +41,21 @@ print(chords.third_inversion(randomChord))
 # sevenths
 #	
 
+print() 
+print()
+fluidsynth.init("GeneralUser_GS_v1.471.sf2")
+### THIS IS HOW YOU RANDOMLY GENERATE CHORDS
+randomNote = notes.int_to_note(random.randint(0, 11), "b" if random.random() > .5 else "#")
+print(randomNote)
+randomChord = chords.major_triad(randomNote)
+print(randomChord)
+randoMChordWithTones = []
+for s in randomChord:
+	chordToneWithOctave = Note(s, 2)
+	randoMChordWithTones.append(chordToneWithOctave)
 
-number = 9
-if( number < 10 ):
-	pass
-elif( number < 20 ):
-	print(number)
-else:
-	print(number)
+print(randoMChordWithTones)
+
+b = Bar()
+b.place_notes(randoMChordWithTones, 2)
+fluidsynth.play_Bar(b, 1, 60)

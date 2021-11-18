@@ -20,6 +20,7 @@ class PythonEarTrainer:
 	octave = 0
 	chordDifficultyLevel = 0
 	includeInversions = False
+	majorMinorAllocation = 0
 	randomizedOctave = False
 	firstAttempt = True
 	correctGuesses = 0.0
@@ -43,6 +44,7 @@ class PythonEarTrainer:
 		return input == "N" or input == "n"
 
 	@staticmethod
+	# TODO add interval guess
 	def getSettings():
 		PythonEarTrainer.noteRange = int(input("Starting at C, How many notes would you like to shuffle between. Ex) 1 = (C), 2 = (C,C#), 3 = (C,Db,D)... "))
 		if( PythonEarTrainer.noteRange < 1 or PythonEarTrainer.noteRange > 12 ):
@@ -74,7 +76,10 @@ class PythonEarTrainer:
 	def getRandomChord(difficultyLevel, playInversions):
 		randomRoot = PythonEarTrainer.getRandomRoot()
 		randomChord = None
-		# random triad  -- could be major, minor, diminished, or augmented. skew so that most of the time you get major or minor --> maybe 70#
+		# TODO adjust come up with a better input
+			#### set major/minor weight share to 70% --> major and minor split it in half
+			#### set suspended weight share to 20% of what's left --> 1 - 
+		# random triad  -- could be major, minor, diminished, augmented, sus2, or sus4. skew so that most of the time you get major or minor --> maybe 70%
 		if( difficultyLevel == 1 ):
 			diceRoll = random.random()
 			# 35% chance
@@ -83,16 +88,22 @@ class PythonEarTrainer:
 			# 35% chance
 			elif( diceRoll < 0.70 ):
 				randomChord = chords.minor_triad(randomRoot)
-			#15% chance
-			elif( diceRoll < 0.85 ):
-				randomChord = chords.diminished_triad(randomRoot)
-			#15% chance
-			else:
+			#10% chance
+			elif( diceRoll < 0.80 ):
+				randomChord = chords.suspended_second_triad(randomRoot)
+			#10% chance
+			elif( diceRoll < 0.90 ):
+				randomChord = chords.suspended_fourth_triad(randomRoot)
+			#5% chance
+			elif( diceroll < 0.95 ):
 				randomChord = chords.augmented_triad(randomRoot)
+			#5% chance
+			else:
+				randomChord = chords.diminished_triad(randomRoot)
 			print()
-		# random 4 or more tone chord. could be 
-		elif( difficultyLevel == 2 ):
-			# random 4 or more tones
+		# https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L255
+		# random 4 or more tone chord. 27 options: maj7, m7, dom7, halfDim7, m7b5, dim7, mMaj7, m6, maj6, dom6, sixNinth, m9, maj9, dom9, domb9, dom#9, min11, min13, maj13, dom13, sus7, sus49, augM7, augm7, domb5, lydianDom7, hendrixChord
+		elif( difficultyLevel == 2 ): 
 			print()
 		elif( difficultyLevel == 3 ):
 			# random triad or 4+ chord
@@ -117,6 +128,7 @@ class PythonEarTrainer:
 		print("TODO")
 
 	@staticmethod
+	# use 'tonic' method to get root https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L571
 	def playAndGuessRandomChord(randomChord):
 		print("TODO")
 
@@ -165,11 +177,13 @@ class RandomChord:
 		# ex) major, minor, augmented, ninth, suspended, etc...
 		self.quality = quality
 
+
 while(True):
 	if(PythonEarTrainer.firstAttempt):
 		PythonEarTrainer.getSettings()
 		PythonEarTrainer.firstAttempt = False
 	else:
+
 		settings = input("Press R to repeat the same settings as last time. Enter N for new settings")
 		if(settings == "N" or settings == "n"):
 			PythonEarTrainer.getSettings()
@@ -187,6 +201,9 @@ while(True):
 		chordDifficultyLevel = int(input("Select the difficulty level between 1 and 3.\nLevel 1: Just triads\nLevel 2: Just 4 or more tone chords\nLevel 3: Both triads and 4 tone chords"))
 		if( chordDifficultyLevel < 1 and chordDifficultyLevel > 3 ):
 			raise ValueError("Difficulty level must be between 1 and 3")
+		majorMinorAllocation = int(input("What percentage, from 0 to 100, of major/minor chords would you like to receive? Ex) Entering 100 would guarantee hearing major or minor chord, 50 would mean you'd hear a major or minor chord half the time, etc..."))
+		if( majorMinorAllocation < 1 or majorMinorAllocation > 100 ):
+			raise ValueError("Must enter a number between 1 and 100")
 		PythonEarTrainer.chordDifficultyLevel = chordDifficultyLevel
 		includeInversions = input("Y/N Do you want to include inversions?")
 		if( includeInversions != "y" and includeInversions != "Y" and includeInversions != "N" and includeInversions != "n" ):
