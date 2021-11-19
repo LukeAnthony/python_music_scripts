@@ -27,8 +27,7 @@ print("c harmonic major:")
 print(cHarmonicMajor)
 
 
-randomChord = chords.major_triad("C")
-print(randomChord)
+randomChord = chords.major_seventh("C")
 print(chords.first_inversion(randomChord))
 print(chords.second_inversion(randomChord))
 print(chords.third_inversion(randomChord))
@@ -47,7 +46,7 @@ fluidsynth.init("GeneralUser_GS_v1.471.sf2")
 ### THIS IS HOW YOU RANDOMLY GENERATE CHORDS
 randomNote = notes.int_to_note(random.randint(0, 11), "b" if random.random() > .5 else "#")
 print(randomNote)
-randomChord = chords.major_triad(randomNote)
+randomChord = chords.suspended_triad(randomNote)
 print(randomChord)
 randoMChordWithTones = []
 for s in randomChord:
@@ -59,3 +58,4 @@ print(randoMChordWithTones)
 b = Bar()
 b.place_notes(randoMChordWithTones, 2)
 fluidsynth.play_Bar(b, 1, 60)
+print(chords.determine(randomChord))

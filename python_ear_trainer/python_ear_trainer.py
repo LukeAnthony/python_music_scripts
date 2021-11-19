@@ -130,6 +130,7 @@ class PythonEarTrainer:
 	@staticmethod
 	# use 'tonic' method to get root https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L571
 	def playAndGuessRandomChord(randomChord):
+		# Need to use chords.determine https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L919 
 		print("TODO")
 
 	@staticmethod
@@ -169,11 +170,11 @@ class RandomNote:
 		return self.randomNote + "-" + str(self.randomNote.octave)
 
 class RandomChord:
-	def __init__(self, randomRoot, numNotes, quality):
+	def __init__(self, randomRoot, chordTones, quality):
 		# serves as root note
 		self.randomRoot = randomRoot
-		#  number of notes in the chord
-		self.numNotes = numNotes
+		#  notes in the chord
+		self.chordTones = chordTones
 		# ex) major, minor, augmented, ninth, suspended, etc...
 		self.quality = quality
 
@@ -213,3 +214,89 @@ while(True):
 		PythonEarTrainer.playAndGuessRandomChord(PythonEarTrainer.getRandomChord())
 	print("Current Stats: \n\t[Correct Guesses]= " + str(PythonEarTrainer.correctGuesses) + "\n\t[Total Attempts]= " + str(PythonEarTrainer.totalAttempts) + "\n\t[Percent Correct]= " + str(PythonEarTrainer.percentCorrect) + "\n")
 
+"""
+Random Chord matching logic
+
+
+#6 triads below
+majTriad --> major triad
+minTriad --> minor triad
+dimTriad --> diminished triad
+augTriad --> augmented triad
+sus4Triad --> suspended fourth triad
+sus2Triad --> suspended second triad
+
+
+#27 chords below
+maj7 --> major seventh
+m7 --> minor seventh
+dom7 --> dominant seventh
+halfDim7 --> half diminished seventh
+m7b5 --> half diminished seventh
+dim7 --> diminished seventh
+mMaj7 --> minor/major seventh
+m6 --: minor sixth
+maj6 --> major sixth
+dom6 --> dominant sixth
+sixNinth --> sixth ninth
+m9 --> major ninth
+maj9 --> minor ninth
+dom9 --> dominant ninth
+domb9 --> dominant flat ninth
+dom#9 --> dominant sharp ninth 
+min11 --> minor eleventh
+min13 --> minor thirteenth
+maj13 --> major thirteenth
+dom13 --> dominant thirteenth
+sus7 --> suspended seventh
+sus49 --> suspended fourth ninth
+augM7 --> augmented major seventh
+augm7 --> augmented minor seventh
+domb5(7b5) --> dominant flat five
+lydianDom7 --> lydian dominant seventh
+hendrixChord --> hendrix chord
+
+Each of the methods in chords.py maps to a chord_shorthand_meaning key/value
+https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L111
+
+
+
+
+
+chords.determine(randomChord) will print ['__root__ __chord type that = value in chord_shorthand_meaning__']
+['D# suspended fourth triad'] 
+
+need to split the string on space
+	first entry in array is the note
+	concat all other entries to get the chord type
+
+
+HOW TO DETERMINE WHAT CHORDS TO GENERATE
+	originally was determining levels based off of triads vs 4+ but that's not a great way to do it
+	may split according to this modified lsit which is found in the from_shorthand method
+		https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L786
+
+	Triads: 'm', 'M', 'dim', aug, sus4, sus2
+		minor triad, major tiriad, diminished triad, augmented triad, suspended fourth triad, suspended second triad
+	Sevenths: 'm7', 'M7', '7', 'm7b5', 'dim7', 'm/M7', 7sus4, 7#11, 7+, m7+
+		minor 7th, major 7th, dominant 7th, half dim 7th, dim 7th, minor/major 7th, suspended 7th, lydian dominant seventh, augmented major 7th augmented minor 7th
+	Augmented chords: 'aug', 'M7+'', 'm7+',
+		augmented triad, augmented major seventh, augmented minor seventh, 
+	Suspended chords: 'sus4', 'sus2', '7sus4',  'susb9'
+		suspended fourth triad, suspended second triad, suspended seventh, suspended fourth ninth
+	Sixths: '6', 'm6', '6/7', '6/9'
+		major sixth, minor sixth, dominant sixth, six ninth
+	Ninths: '9' , 'M9', 'm9', '7b9', '7#9', '6/9'
+		dominant ninth, major ninth, minor ninth, dominant flat ninth, dominant sharp ninth, sixth ninth
+	Elevenths: '7#11', 'm11'
+		lydian dominant 7th, minor eleventh
+	Thirteenths: '13' , 'M13', 'm13'
+		dominant thirteenth, major 13th, minor 13th
+	Altered chords: '7b5', '7b9', '7#9', '6/7', '7b12'
+		dominant flat five, dominant flat ninth, dominant sharp ninth, dominant sixth, hendrix chord
+	
+	listChordTypes = [Triads, Sevenths, Augmented chords, Suspended Chords, Sixths, Ninths, Elevenths, Thirteenths, Altered Chords]
+	print("What chord type would you like to hear? Type all for all of them " + listChordTypes)
+	if all play
+
+"""
