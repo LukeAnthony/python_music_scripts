@@ -44,9 +44,10 @@ print()
 print()
 fluidsynth.init("GeneralUser_GS_v1.471.sf2")
 ### THIS IS HOW YOU RANDOMLY GENERATE CHORDS
+chordFunctionMap = {"triads": [chords.suspended_second_triad, chords.suspended_fourth_triad]}
 randomNote = notes.int_to_note(random.randint(0, 11), "b" if random.random() > .5 else "#")
 print(randomNote)
-randomChord = chords.suspended_triad(randomNote)
+randomChord = chordFunctionMap["triads"][1](randomNote)
 print(randomChord)
 randoMChordWithTones = []
 for s in randomChord:
@@ -59,3 +60,7 @@ b = Bar()
 b.place_notes(randoMChordWithTones, 2)
 fluidsynth.play_Bar(b, 1, 60)
 print(chords.determine(randomChord))
+
+print()
+
+print(chords.chord_shorthand_meaning.get("7#11").lstrip(' '))
