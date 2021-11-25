@@ -2,6 +2,7 @@ import mingus.core.notes as notes
 import mingus.core.keys as keys
 import mingus.core.chords as chords
 import mingus.core.scales as scales
+import mingus.core.intervals as intervals
 from mingus.containers import Note
 from mingus.containers import NoteContainer
 from mingus.containers import Bar
@@ -59,6 +60,11 @@ class PythonEarTrainer:
 		# Altered: '7b5', '7b9', '7#9', '6/7', '7b12'
 		"altered": ( [ "dominant flat five", "dominant flat ninth", "dominant sharp ninth", "dominant sixth", "hendrix chord" ], 
 			[chords.dominant_flat_five, chords.dominant_flat_ninth, chords.dominant_sharp_ninth, chords.dominant_sixth, chords.hendrix_chord] )
+	}
+	# can get interval functions here https://github.com/bspaans/python-mingus/blob/master/mingus/core/intervals.py#L160
+	# TODO is major unison the same note? thought that was called perfect unison....
+	intervalTypesDictionary = {
+
 	}
 	
 	@staticmethod
@@ -264,6 +270,7 @@ class RandomChord:
 		return f'{self.randomRoot} {self.chordName}, which is a ' + ' chord or a '.join(self.chordTypeList) + ' chord'
 
 # TODO add interval guessing
+# TODO add inversions to interval guessing
 while(True):
 	if(PythonEarTrainer.firstAttempt):
 		PythonEarTrainer.getSettings()
