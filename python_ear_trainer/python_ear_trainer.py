@@ -151,11 +151,11 @@ class PythonEarTrainer:
 		print(chordName)
 		# to get chord type list:
 			# for each key in chordTypesDictionary, if tuple[0] contains chord name, add key to chord type list
-		chordType = []
+		chordTypeList = []
 		for key in PythonEarTrainer.chordTypesDictionary:
 			if chordName in PythonEarTrainer.chordTypesDictionary[key][0]:
-				chordType.append(key)
-		return RandomChord(randomRoot, randomChord, randomChordAsNoteObjects, chordType, chordName )
+				chordTypeList.append(key)
+		return RandomChord(randomRoot, randomChord, randomChordAsNoteObjects, chordTypeList, chordName )
 
 	@staticmethod
 	# use 'tonic' method to get root https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L571
@@ -197,11 +197,11 @@ class PythonEarTrainer:
 
 
 			if PythonEarTrainer.moreThanOneChordTypeChoice:
-				if(typeGuess in randomChord.chordType):
+				if(typeGuess in randomChord.chordTypeList):
 					PythonEarTrainer.updateStats(1.0)
 					print("You were correct. The chord type was: " + typeGuess)
 				else:
-					print("Incorrect. You guessed: " + typeGuess + ". The chord type(s) were: " + randomChord.chordType)
+					print("Incorrect. You guessed: " + typeGuess + ". The chord type(s) were: " + randomChord.chordTypeList)
 					PythonEarTrainer.updateStats(0.0)
 
 			if(nameGuess == randomChord.chordName):
@@ -248,21 +248,20 @@ class RandomNote:
 		return self.randomNote + "-" + str(self.randomNote.octave)
 
 class RandomChord:
-	def __init__(self, randomRoot, chordTones, chordTonesAsNoteObjects, chordType, chordName):
+	def __init__(self, randomRoot, chordTones, chordTonesAsNoteObjects, chordTypeList, chordName):
 		# serves as root note
 		self.randomRoot = randomRoot
 		#  notes in the chord
 		self.chordTones = chordTones
 		# list of note objects is what fluidsynth needs to play
 		self.chordTonesAsNoteObjects = chordTonesAsNoteObjects
-		# ex) major, minor, augmented, ninth, suspended, etc...
-		# should be a list as some chord names appear in multiple types, such as augmented triads
-		self.chordType = chordType
+		# list of possible chord types such as major, minor, augmented, ninth, suspended, etc...
+		self.chordTypeList = chordTypeList
 		# lydian dominant seventh, major sixth, suspended second, etc....
 		self.chordName = chordName
 
 	def __str__(self):
-		return f'{self.randomRoot} {self.chordName}, which is a ' + ' chord or a '.join(self.chordType) + ' chord'
+		return f'{self.randomRoot} {self.chordName}, which is a ' + ' chord or a '.join(self.chordTypeList) + ' chord'
 
 # TODO add interval guessing
 while(True):
@@ -279,7 +278,6 @@ while(True):
 		else:
 			raise ValueError("Need to enter R or N next time")
 	if( PythonEarTrainer.isNote(PythonEarTrainer.noteOrChord) ):
-		# TODO collapse into one method??
 		PythonEarTrainer.playAndGuessRandomNote(PythonEarTrainer.getRandomNote())
 	else:
 		PythonEarTrainer.playAndGuessRandomChord(PythonEarTrainer.getRandomChord())
