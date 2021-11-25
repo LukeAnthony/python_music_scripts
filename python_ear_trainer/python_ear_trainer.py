@@ -28,37 +28,36 @@ class PythonEarTrainer:
 	randomOctaveFloor = 2
 	randomOctaveCeiling = 4
 	chordTypes = ["triads", "sevenths", "augmented", "suspended", "sixths", "ninths", "elevenths", "thirteenths", "altered"]
-	chordChoices = []
-	evenChordProbability = False
-	# contains a map of the chord types to the functions that generate the chords of that type. will have to pass each function the note
+	chordTypeChoices = []
+	# contains a map of the chord types to a touple containing a list of the chord names of that type and the functions that generate those chords
 	chordTypesMap = { 
 		# Triads: 'm', 'M', 'dim', aug, sus4, sus2
-			# minor triad, major tiriad, diminished triad, augmented triad, suspended fourth triad, suspended second triad
-		"triads": [chords.minor_triad, chords.major_triad, chords.diminished_triad, chords.augmented_triad, chords.suspended_fourth_triad, chords.suspended_second_triad],
+		"triads": ( [ "minor triad", "major triad", "diminished triad", "augmented triad", "suspended fourth triad", "suspended second triad" ],
+			 [chords.minor_triad, chords.major_triad, chords.diminished_triad, chords.augmented_triad, chords.suspended_fourth_triad, chords.suspended_second_triad] ),
 		# Sevenths: 'm7', 'M7', '7', 'm7b5', 'dim7', 'm/M7', 7sus4, 7#11, 7+, m7+
-			# minor 7th, major 7th, dominant 7th, half dim 7th, dim 7th, minor/major 7th, suspended 7th, lydian dominant seventh, augmented major 7th augmented minor 7th
-		"sevenths": [chords.minor_seventh, chords.major_seventh, chords.dominant_seventh, chords.half_diminished_seventh, chords.diminished_seventh, chords.minor_major_seventh, chords.suspended_seventh, chords.lydian_dominant_seventh, chords.augmented_major_seventh, chords.augmented_minor_seventh ],
+		"sevenths": ( [ "minor seventh", "major seventh", "dominant seventh", "half diminished seventh", "diminished seventh", "minor/major seventh", "suspended seventh", "lydian dominant seventh", "augmented major seventh", "augmented minor seventh" ],
+			 [chords.minor_seventh, chords.major_seventh, chords.dominant_seventh, chords.half_diminished_seventh, chords.diminished_seventh, chords.minor_major_seventh, chords.suspended_seventh, chords.lydian_dominant_seventh, chords.augmented_major_seventh, chords.augmented_minor_seventh ] ),
 		# Augmented: 'aug', 'M7+'', 'm7+',
-			# augmented triad, augmented major seventh, augmented minor seventh, 
-		"augmented": [chords.augmented_triad, chords.augmented_major_seventh, chords.augmented_minor_seventh],
+		"augmented": ( [ "augmented triad", "augmented major seventh", "augmented minor seventh" ],
+			[chords.augmented_triad, chords.augmented_major_seventh, chords.augmented_minor_seventh] ),
 		# Suspended: 'sus4', 'sus2', '7sus4',  'susb9'
-			# suspended fourth triad, suspended second triad, suspended seventh, suspended fourth ninth
-		"suspended": [chords.suspended_fourth_triad, chords.suspended_second_triad, chords.suspended_seventh, chords.suspended_fourth_ninth],
+		"suspended": ( [ "suspended fourth triad", "suspended second triad", "suspended seventh", "suspended fourth ninth" ],
+			[chords.suspended_fourth_triad, chords.suspended_second_triad, chords.suspended_seventh, chords.suspended_fourth_ninth] ),
 		# Sixths: '6', 'm6', '6/7', '6/9'
-			# major sixth, minor sixth, dominant sixth, six ninth
-		"sixths": [chords.major_sixth, chords.minor_sixth, chords.dominant_sixth, chords.sixth_ninth],
+		"sixths": ( [ "major sixth", "minor sixth", "dominant sixth", "six ninth" ],
+			[chords.major_sixth, chords.minor_sixth, chords.dominant_sixth, chords.sixth_ninth] ),
 		# Ninths: '9' , 'M9', 'm9', '7b9', '7#9', '6/9'
-			# dominant ninth, major ninth, minor ninth, dominant flat ninth, dominant sharp ninth, sixth ninth
-		"ninths": [chords.dominant_ninth, chords.major_ninth, chords.minor_ninth, chords.dominant_flat_ninth, chords.dominant_sharp_ninth, chords.sixth_ninth],
+		"ninths": ( [ "dominant ninth", "major ninth", "minor ninth", "dominant flat ninth", "dominant sharp ninth", "sixth ninth" ],
+			[chords.dominant_ninth, chords.major_ninth, chords.minor_ninth, chords.dominant_flat_ninth, chords.dominant_sharp_ninth, chords.sixth_ninth] ),
 		# Elevenths: '7#11', 'm11'
-			# lydian dominant 7th, minor eleventh
-		"elevenths": [chords.lydian_dominant_seventh, chords.minor_eleventh],
+		"elevenths": ( [ "lydian dominant seventh", "minor eleventh" ],
+			[chords.lydian_dominant_seventh, chords.minor_eleventh] ),
 		# Thirteenths: '13' , 'M13', 'm13'
-			# dominant thirteenth, major 13th, minor 13th
-		"thirteenths": [chords.dominant_thirteenth, chords.major_thirteenth, chords.minor_thirteenth],
+		"thirteenths": ( [ "dominant thirteenth", "major thirteenth", "minor thirteenth" ], 
+			[chords.dominant_thirteenth, chords.major_thirteenth, chords.minor_thirteenth] ),
 		# Altered: '7b5', '7b9', '7#9', '6/7', '7b12'
-			# dominant flat five, dominant flat ninth, dominant sharp ninth, dominant sixth, hendrix chord
-		"altered": [chords.dominant_flat_five, chords.dominant_flat_ninth, chords.dominant_sharp_ninth, chords.dominant_sixth, chords.hendrix_chord]
+		"altered": ( [ "dominant flat five", "dominant flat ninth", "dominant sharp ninth", "dominant sixth", "hendrix chord" ], 
+			[chords.dominant_flat_five, chords.dominant_flat_ninth, chords.dominant_sharp_ninth, chords.dominant_sixth, chords.hendrix_chord] )
 	}
 	
 
@@ -77,10 +76,10 @@ class PythonEarTrainer:
 		return input.lower() == "n"
 
 	@staticmethod
-	# TODO add interval guess
+	# TODO add interval guessing
 	def getSettings():
 		# resetting choices so you don't add to a populated list
-		PythonEarTrainer.chordChoices = []
+		PythonEarTrainer.chordTypeChoices = []
 		PythonEarTrainer.noteRange = int(input("Starting at C, How many notes would you like to shuffle between. Ex) 1 = (C), 2 = (C,C#), 3 = (C,Db,D)... "))
 		if( PythonEarTrainer.noteRange < 1 or PythonEarTrainer.noteRange > 12 ):
 			raise ValueError("Range must be between 1 and 12, inclusive")
@@ -104,11 +103,12 @@ class PythonEarTrainer:
 		PythonEarTrainer.octave =  random.randint(PythonEarTrainer.randomOctaveFloor, PythonEarTrainer.randomOctaveCeiling)
 
 	@staticmethod
-	def getRandomChord(chorodTypes):
+	def getRandomChord():
 		randomRoot = PythonEarTrainer.getRandomRoot()
-		randomChord = None
-		
-
+		listOfChordFunctions = []
+		for chordType in PythonEarTrainer.chordTypeChoices:
+			listOfChordFunctions.extend(PythonEarTrainer.chordTypesMap[chordType][1])
+		randomChord = listOfChordFunctions[random.randrange(len(listOfChordFunctions))](randomRoot)
 		# TODO adjust math? 32% chance of inversion, if inversion 8% chance of each type (first, second, third, fourth -- fourth inversion on a triad would be regular triad so 24% chance of inversion if triad)
 		# could add "always invert" option or adjust probability manually here
 		if( PythonEarTrainer.includeInversions ):
@@ -123,13 +123,30 @@ class PythonEarTrainer:
 				randomChord = chords.third_inversion(randomChord)
 			else:
 				randomChord = chords.fourth_inversion(randomChord)
-
-		print("TODO")
+		randomChordAsNoteObjects = []
+		for tone in randomChord:
+			toneAsNote = Note(tone, PythonEarTrainer.octave)
+			randomChordAsNoteObjects.append(toneAsNote)
+		# generate a randomChord object
+		# to get chord name, chords.determine(randomChord) split the first entry on ' ' then concat entries 1 to list end.
+		# to get chord type list:
+			# for each key in chordTypesMap, if tuple[0] contains chorod name, add key to chord type list
+		return RandomChord(randomRoot, randomChord, randomChordAsNoteObjects,  )#chordType, #chordName )
 
 	@staticmethod
 	# use 'tonic' method to get root https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L571
+	# Need to use chords.determine https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L919 
 	def playAndGuessRandomChord(randomChord):
-		# Need to use chords.determine https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L919 
+		b = Bar()
+		# placing the chord as a whole note in the bar
+		b.place_notes(randoomChord.chordTones, 1)
+		whiile True:
+			# play bar on channel 1 at 60bpm
+			fluidsynth.play_Bar(b, 1, 60)
+			rootGuess = input("What do you think the root of that chord was?")
+			typeGuess = input("What doo you think the type of that chord (triad, augmented, suspended, etc...)?")
+			nameGuess = input("Excluding the root, what was the name of that chord (suspended second, major sixth, etc...)?")
+
 		print("TODO")
 
 	@staticmethod
@@ -169,13 +186,18 @@ class RandomNote:
 		return self.randomNote + "-" + str(self.randomNote.octave)
 
 class RandomChord:
-	def __init__(self, randomRoot, chordTones, quality):
+	def __init__(self, randomRoot, chordTones, chordTonesAsNoteObjects, chordType, chordName):
 		# serves as root note
 		self.randomRoot = randomRoot
 		#  notes in the chord
 		self.chordTones = chordTones
+		# list of note objects is what fluidsynth needs to play
+		self.chordTonesAsNoteObjects = chordTonesAsNoteObjects
 		# ex) major, minor, augmented, ninth, suspended, etc...
-		self.quality = quality
+		# should be a list as some chord names appear in multiple types, such as augmented triads
+		self.chordType = chordType
+		# lydian dominant seventh, major sixth, suspended second, etc....
+		self.chordName = chordName
 
 while(True):
 	if(PythonEarTrainer.firstAttempt):
@@ -202,8 +224,8 @@ while(True):
 		chordChoices = input("What chord types would you like to select from? Choices are " + str(PythonEarTrainer.chordTypes) + ".\n Type the groups you want to select from separated by a comma (ex: Ninths,Thirteenths,Triads). To select from all chord types, type 'all'.")
 		# TODO better input validation
 		if( chordChoices.lower() == "all" ):
-			PythonEarTrainer.chordChoices = PythonEarTrainer.chordTypes
-			print(PythonEarTrainer.chordChoices)
+			PythonEarTrainer.chordTypeChoices = PythonEarTrainer.chordTypes
+			print(PythonEarTrainer.chordTypeChoices)
 		else:
 			chordChoices = chordChoices.split(',')
 			for chord in chordChoices:
@@ -211,16 +233,12 @@ while(True):
 					print("Didn't recognize input " + chord)
 				#if valid chord
 				else:
-					PythonEarTrainer.chordChoices.append(chord)
-			print(PythonEarTrainer.chordChoices)
+					PythonEarTrainer.chordTypeChoices.append(chord)
+			print(PythonEarTrainer.chordTypeChoices)
 		includeInversions = input("Y/N Do you want to include inversions?")
 		if( includeInversions.lower() != "y" and includeInversions.lower() != "n" ):
 			raise ValueError("Answer must be Y/N")
 		PythonEarTrainer.includeInversions = includeInversions.lower() == "y"
-		evenChordProbability = input("Do you want the chords in each chord type to have the same probability of appearing or for each to have the probability listed in line ___? Y for same probability, N for custom")
-		if( evenChordProbability.lower() != "y" and evenChordProbability.lower() != "n" ):
-			raise ValueError("Answer must be Y/N")
-		PythonEarTrainer.evenChordProbability = evenChordProbability.lower() == "y"
 		# TODO collapse into one method??
 		PythonEarTrainer.playAndGuessRandomChord(PythonEarTrainer.getRandomChord())
 	print("Current Stats: \n\t[Correct Guesses]= " + str(PythonEarTrainer.correctGuesses) + "\n\t[Total Attempts]= " + str(PythonEarTrainer.totalAttempts) + "\n\t[Percent Correct]= " + str(PythonEarTrainer.percentCorrect) + "\n")
@@ -307,30 +325,6 @@ Shorthand meaning per category with their full names below
 
 	to get full name from shorthand meaning:
 		print(chords.chord_shorthand_meaning.get("7#11").lstrip(' ')) #lstrip gets rid of leading white space
-
-
-Need to create a dictionary, with the key being the category and the value being a list of all of the chords.py functions that generate those kinds of chords
-	
-
-
-
-
-
-
-
-	listChordTypes = [Triads, Sevenths, Augmented chords, Suspended Chords, Sixths, Ninths, Elevenths, Thirteenths, Altered Chords]
-	print("What chord types would you like to select from? Choices are [Triads, Sevenths, Augmented, Suspended, Sixths, Ninths, Elevenths, Thirteenths, Altered]. Type the groups you want to hear separated by a comma (ex: Ninths,Thirteenths,Triads). For all, type 'all'.  type  ")
-	if all 
-		set chord choices to chords list
-	else 
-		set chord choices to a list of the inputs with each comma separated chord as an entry in the list
-	create a blank list called randomChordFunctions
-	for each entry in chord choices
-		randomChrodFunctons.append(chordTypesMap[entry]) #getting the lsit of functions for the desired categories
-	generate a random number between 0 and the length of randomChordFunctions-1 to be the index
-	select the function at the random index and call it using the random root generated
-	...
-
 
 
 
