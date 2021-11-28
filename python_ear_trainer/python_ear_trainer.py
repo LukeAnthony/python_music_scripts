@@ -250,7 +250,6 @@ class PythonEarTrainer:
 				print("Incorrect. You guessed: " + rootGuess + ". The root was: " + randomChord.randomRoot)
 				PythonEarTrainer.updateStats(0.0)
 
-
 			if PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice:
 				if(typeGuess in randomChord.chordTypeList):
 					PythonEarTrainer.updateStats(1.0)
@@ -341,6 +340,7 @@ class PythonEarTrainer:
 			elif not notes.is_valid_note(firstNoteGuess):
 				raise ValueError("You entered: " + firstNoteGuess + ", which isn't a note. Must enter a valid note")
 			else:
+				# TODO use Note.py methods to evaluate equality e.g. enter C# but note is Db. would be != using string comparison
 				if( firstNoteGuess == randomInterval.get_first_note_name() ):
 					print("Correct! The first note was: " + firstNoteGuess)
 					PythonEarTrainer.updateStats(1.0)
@@ -354,6 +354,7 @@ class PythonEarTrainer:
 			elif not notes.is_valid_note(secondNoteGuess):
 				raise ValueError("You entered: " + secondNoteGuess + ", which isn't a note. Must enter a valid note")	
 			else:
+				# TODO use Note.py methods to evaluate equality e.g. enter C# but note is Db. would be != using string comparison
 				if( secondNoteGuess == randomInterval.get_second_note_name() ):
 					print("Correct! The second note was: " + secondNoteGuess)
 					PythonEarTrainer.updateStats(1.0)
