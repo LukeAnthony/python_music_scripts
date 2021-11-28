@@ -3,6 +3,7 @@ import mingus.core.keys as keys
 from mingus.containers import Note
 import mingus.core.chords as chords
 import mingus.core.scales as scales
+import mingus.core.intervals as intervals
 from mingus.midi import fluidsynth
 from mingus.containers import NoteContainer
 from mingus.containers import Bar
@@ -65,4 +66,17 @@ print(chordName)
 chordNameLessRootList = chordName[0].split(' ')[1:]
 chordNameLessRoot = ' '.join(chordNameLessRootList)
 print(chordNameLessRoot)
+print()
+print()
+
+#testing intervals
+print("testing intervals")
+randomNote = notes.int_to_note(random.randint(0, 11), "b" if random.random() > .5 else "#")
+note = Note("C", 4)
+print(randomNote)
+print(note)
+minorSecond = intervals.minor_second(note.name)
+minorSecondNote = Note(minorSecond, 4)
+print(minorSecondNote)
+print(intervals.determine(note.name, minorSecond, False))
 

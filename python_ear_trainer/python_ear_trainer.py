@@ -20,14 +20,14 @@ class PythonEarTrainer:
 	noteRange = 0
 	noteChordOrInterval = ""
 	octave = 0
-	includeInversions = False
+	invertChordOrInterval = False
 	majorMinorAllocation = 0
 	randomizedOctave = False
 	firstAttempt = True
 	correctGuesses = 0.0
 	totalAttempts = 0.0
 	percentCorrect = ""
-	randomOctaveFloor = 2
+	randomOctaveFloor = 1
 	randomOctaveCeiling = 4
 	# use same list and boolean for interval type choices and chord type choice
 	chordOrIntervalTypeChoices = []
@@ -100,24 +100,25 @@ class PythonEarTrainer:
 	def isInterval(input):
 		return input.lower() == "i"
 
-	@staticmethod
 	
 	# TODO build out decision tree 
 	"""
 		Decision Tree:
 			Decide note, chord, or interval
+			Decide which range of notes you want to hear
 			Decide which octave to play it in
-			decide which range of notes you want to hear
 			if interval or chord
-				decide if you want to include inversions
 				if interval
 					decide which intervals you'd like to hear (perfect unison to major seventh)
 				if chord
 					decide which chord types to choose from
+				decide if you want to include inversions
 	"""
+	@staticmethod
 	def getSettings():
 		# resetting choices so you don't add to a populated list
 		PythonEarTrainer.chordorIntervalTypeChoices = []
+		PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = False
 
 		PythonEarTrainer.noteChordOrInterval = input("Do you want to hear a random note, a random chord, or a random interval? Enter 'N' for note, 'C' for chord, 'I' for interval ")
 		if( not PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) ):
@@ -137,12 +138,20 @@ class PythonEarTrainer:
 			PythonEarTrainer.octave = int(octaveString)
 			PythonEarTrainer.randomizedOctave = False
 
-		# both intervals and chords have the option to include inversions
 		if PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) or PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval):
-			if PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval)
-				intervalChoices = input("What intervals types would you like a random selection to be made from? Choices are: " + str(list(PythonEarTrainer.intervalTypesDictionary.keys())) + ".\nType the intervals separated by a comma (ex: major second, perfect fifth). To select all interval types, type 'all'. ")
+			if PythonEarTrainer.isInterval( PythonEarTrainer.noteChordOrInterval ):
+				intervalChoices = input("What intervals types would you like a random selection to be made from? Choices are: " + str(list(PythonEarTrainer.intervalTypesDictionary.keys())) + ".\nType the intervals separated by a comma (ex: major second, perfect fifth). To select all interval types, type 'all'.\nNOTE: Choosing to include inversions later will add an additional interval type for every interval chosen here ")
 				if( intervalChoices.lower() == "all" ):
-					PythonEarTrainer.
+					PythonEarTrainer.chordOrIntervalTypeChoices = Python.intervalTypesDictionary.keys()
+					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = True
+				else:
+					intervalChoices = intervalChoices.split(',')
+					for interval in intervalChoices:
+						if interval not in PythonEarTrainer.intervalTypesDictionary.keys():
+							print("Didn't recognize interval type: " + interval)
+						else:
+							PythonEarTrainer.chordOrIntervalTypeChoices.append(interval)
+					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = len(PythonEarTrainer.chordOrIntervalTypeChoices) > 1
 			if(PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval)):
 				chordChoices = input("What chord types would you like a random selection to be made from? Choices are " + str(list(PythonEarTrainer.chordTypesDictionary.keys())) + ".\nType the groups you want to select from separated by a comma (ex: Ninths,Thirteenths,Triads). To select from all chord types, type 'all'. ")
 				# TODO better input validation
@@ -153,20 +162,21 @@ class PythonEarTrainer:
 					chordChoices = chordChoices.split(',')
 					for chord in chordChoices:
 						if chord not in PythonEarTrainer.chordTypesDictionary.keys():
-							print("Didn't recognize input " + chord)
+							print("Didn't recognize chord type: " + chord)
 						#if valid chord
 						else:
 							PythonEarTrainer.chordOrIntervalTypeChoices.append(chord)
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = len(PythonEarTrainer.chordOrIntervalTypeChoices) > 1
-			
-			includeInversions = input("Y/N Do you want to include inversions? ")
-			if( includeInversions.lower() != "y" and includeInversions.lower() != "n" ):
+
+			# both intervals and chords have the option to include inversions
+			invertChordOrInterval = input("Y/N Do you want to include inversions? ")
+			if( invertChordOrInterval.lower() != "y" and invertChordOrInterval.lower() != "n" ):
 				raise ValueError("Answer must be Y/N")
-			PythonEarTrainer.includeInversions = includeInversions.lower() == "y"
+			PythonEarTrainer.invertChordOrInterval = invertChordOrInterval.lower() == "y"
 
 	@staticmethod
 	def randomizeOctave():
-		PythonEarTrainer.octave =  random.randint(PythonEarTrainer.randomOctaveFloor, PythonEarTrainer.randomOctaveCeiling)
+		PythonEarTrainer.octave = random.randint(PythonEarTrainer.randomOctaveFloor, PythonEarTrainer.randomOctaveCeiling)
 
 	@staticmethod
 	def getRandomChord():
@@ -174,18 +184,20 @@ class PythonEarTrainer:
 		listOfChordFunctions = []
 		for chordType in PythonEarTrainer.chordOrIntervalTypeChoices:
 			listOfChordFunctions.extend(PythonEarTrainer.chordTypesDictionary[chordType][1])
+		# giving each chord an equal chance of being selected
+		# TODO maybe give certain chords higher probability than others of appearing
 		randomChord = listOfChordFunctions[random.randrange(len(listOfChordFunctions))](randomRoot)
-		# TODO adjust math? 32% chance of inversion, if inversion 8% chance of each type (first, second, third, fourth -- fourth inversion on a triad would be regular triad so 24% chance of inversion if triad)
-		# could add "always invert" option or adjust probability manually here
-		if( PythonEarTrainer.includeInversions ):
+		if( PythonEarTrainer.invertChordOrInterval ):
 			secondDiceRoll = random.random()
-			if( secondDiceRoll < 0.68 ):
+			# will always invert given these odds. 
+			# TODO adjust odds manually as needed to mix inversions in with regular chords
+			if( secondDiceRoll < 0.00 ):
 				pass
-			elif( secondDiceRoll < 0.76 ):
+			elif( secondDiceRoll < 0.25 ):
 				randomChord = chords.first_inversion(randomChord)
-			elif( secondDiceRoll < 0.84 ):
+			elif( secondDiceRoll < 0.50 ):
 				randomChord = chords.second_inversion(randomChord)
-			elif( secondDiceRoll < 0.92 ):
+			elif( secondDiceRoll < 0.75 ):
 				randomChord = chords.third_inversion(randomChord)
 			else:
 				randomChord = chords.fourth_inversion(randomChord)
@@ -208,7 +220,6 @@ class PythonEarTrainer:
 	# use 'tonic' method to get root https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L571
 	# Need to use chords.determine https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L919 
 	def playAndGuessRandomChord(randomChord):
-		print(randomChord)
 		b = Bar()
 		# placing the chord as a half note in the bar
 		b.place_notes(randomChord.chordTones, 2)
@@ -289,18 +300,54 @@ class PythonEarTrainer:
 
 	@staticmethod
 	def getRandomInterval():
-		print("TODO")
+		randomRootNote = Note( PythonEarTrainer.getRandomRoot(), PythonEarTrainer.octave )
+		randomRootName = randomRootNote.name
+		listOfIntervalFunctions = []
+		for intervalType in PythonEarTrainer.chordOrIntervalTypeChoices:
+			listOfIntervalFunctions.append(PythonEarTrainer.intervalTypesDictionary[intervalType])
+		print(listOfIntervalFunctions)
+		# giving each interval an equal chance of being selected
+		randomIntervalName = listOfIntervalFunctions[random.randrange(len(listOfIntervalFunctions))](randomRootName)
+		print(randomRootName)
+		print(randomIntervalName)
+		if( PythonEarTrainer.invertChordOrInterval ):
+			diceRoll = random.random()
+			# 50% chance to invert
+			# TODO adjust odds as needed
+			if( diceRoll < 0.5 ):
+				# returns an inverted interval
+				return RandomInterval( Note( randomIntervalName, PythonEarTrainer.octave ), randomRootNote, intervals.determine( randomIntervalName, randomRootName ) )
+			else:
+				# returns the normal interval
+				return RandomInterval( randomRootNote, Note( randomIntervalName, PythonEarTrainer.octave ), intervals.determine( randomRootName, randomIntervalName ) )
+		else:
+			return RandomInterval( randomRootNote, Note( randomIntervalName, PythonEarTrainer.octave ), intervals.determine( randomRootName, randomIntervalName ) )
 
 	@staticmethod
 	def playAndGuessRandomInterval(randomInterval):
+		b = Bar()
+		print(randomInterval.get_first_note_name())
+		print(randomInterval.get_second_note_name())
+		print(randomInterval.intervalType)
+		# half note each
+		b.place_notes(randomInterval.get_first_note_name(), 2)
+		b.place_notes(randomInterval.get_second_note_name(), 2)
+		firstNoteGuess = ""
+		secondNoteGuess = ""
+		intervalGuess = ""
+		fluidsynth.play_Bar(b, 1, 60)
 		print("TODO")
 
+# TODO class really isn't needed. could just use the mingus Note class since it has noth name and octave. would have to maybe adjust the to-stirng 
 class RandomNote:
 	def __init__(self, randomNote, octave):
-		self.randomNote = Note(randomNote, octave)
+		self.note = Note(randomNote, octave)
+
+	def get_note_name(self):
+		return self.note.name
 
 	def return_note_and_octave_string(self):
-		return self.randomNote + "-" + str(self.randomNote.octave)
+		return self.note.name + "-" + str(self.note.octave)
 
 class RandomChord:
 	def __init__(self, randomRoot, chordTones, chordTonesAsNoteObjects, chordTypeList, chordName):
@@ -317,6 +364,18 @@ class RandomChord:
 
 	def __str__(self):
 		return f'{self.randomRoot} {self.chordName}, which is a ' + ' chord or a '.join(self.chordTypeList) + ' chord'
+
+class RandomInterval:
+	def __init__(self, firstNote, secondNote, intervalType):
+		self.firstNote = firstNote
+		self.secondNote = secondNote
+		self.intervalType = intervalType
+
+	def get_first_note_name(self):
+		return self.firstNote.name
+
+	def get_second_note_name(self):
+		return self.secondNote.name
 
 # TODO add chord progression guessing
 # TODO add inversions to interval guessing
@@ -335,7 +394,7 @@ while(True):
 			raise ValueError("Need to enter R or N next time")
 	if( PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval) ):
 		PythonEarTrainer.playAndGuessRandomNote(PythonEarTrainer.getRandomNote())
-	else if PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval):
+	elif PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval):
 		PythonEarTrainer.playAndGuessRandomChord(PythonEarTrainer.getRandomChord())
 	else:
 		PythonEarTrainer.playAndGuessRandomInterval(PythonEarTrainer.getRandomInterval())
