@@ -284,7 +284,8 @@ class PythonEarTrainer:
 			if guess.lower() == "r":
 				continue
 			elif not notes.is_valid_note(guess):
-				raise ValueError("You entered: " + guess + ", which isn't a note. Must enter a valid note")
+				print("You entered: " + guess + ", which isn't a note. Must enter a valid note")
+				continue
 			else:
 				if notes.note_to_int(guess) == notes.note_to_int(randomNote.randomNote.name):
 					print("\nCorrect! That note was a '" + randomNote.randomNote.name + "'")
@@ -338,10 +339,10 @@ class PythonEarTrainer:
 			if firstNoteGuess.lower() == "r":
 				continue
 			elif not notes.is_valid_note(firstNoteGuess):
-				raise ValueError("You entered: " + firstNoteGuess + ", which isn't a note. Must enter a valid note")
+				print("You entered: " + firstNoteGuess + ", which isn't a note. Must enter a valid note")
+				continue
 			else:
-				# TODO use Note.py methods to evaluate equality e.g. enter C# but note is Db. would be != using string comparison
-				if( firstNoteGuess == randomInterval.get_first_note_name() ):
+				if( notes.note_to_int(firstNoteGuess) == notes.note_to_int(randomInterval.get_first_note_name()) ):
 					print("Correct! The first note was: " + firstNoteGuess)
 					PythonEarTrainer.updateStats(1.0)
 				else:
@@ -352,10 +353,10 @@ class PythonEarTrainer:
 			if secondNoteGuess.lower() == "r":
 				continue
 			elif not notes.is_valid_note(secondNoteGuess):
-				raise ValueError("You entered: " + secondNoteGuess + ", which isn't a note. Must enter a valid note")	
+				print("You entered: " + secondNoteGuess + ", which isn't a note. Must enter a valid note")	
+				continue
 			else:
-				# TODO use Note.py methods to evaluate equality e.g. enter C# but note is Db. would be != using string comparison
-				if( secondNoteGuess == randomInterval.get_second_note_name() ):
+				if( notes.note_to_int(secondNoteGuess) == notes.note_to_int(randomInterval.get_second_note_name()) ):
 					print("Correct! The second note was: " + secondNoteGuess)
 					PythonEarTrainer.updateStats(1.0)
 				else:
