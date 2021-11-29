@@ -201,7 +201,7 @@ class PythonEarTrainer:
 				randomChord = chords.fourth_inversion(randomChord)
 		randomChordAsNoteObjects = []
 		for tone in randomChord:
-			toneAsNote = Note(tone, PythonEarTrainer.octave)
+			toneAsNote = Note(tone, PythonEarTrainer.octave, None, 100, 1)
 			randomChordAsNoteObjects.append(toneAsNote)
 		#.determine returns all matching names in list. first entry is most accurate. excluding root note in the chord name since we already have it
 		chordName = ' '.join(chords.determine(randomChord)[0].split(' ')[1:])
@@ -269,7 +269,7 @@ class PythonEarTrainer:
 	@staticmethod
 	def getRandomNote():
 		randomRoot = PythonEarTrainer.getRandomRoot()
-		return Note(randomRoot, PythonEarTrainer.octave)
+		return Note(randomRoot, PythonEarTrainer.octave, None, 100, 1)
 
 	@staticmethod
 	def getRandomRoot():
@@ -280,18 +280,18 @@ class PythonEarTrainer:
 	def playAndGuessRandomNote(randomNote):
 		while True:
 			fluidsynth.play_Note(randomNote)
-			guess = input("What note do you think that was? Press R to repeat it ").upper()
+			guess = input("What note do you think that was? Press R to repeat it ")
 			if guess.lower() == "r":
 				continue
 			elif not notes.is_valid_note(guess):
 				print("You entered: " + guess + ", which isn't a note. Must enter a valid note")
 				continue
 			else:
-				if notes.note_to_int(guess) == notes.note_to_int(randomNote.randomNote.name):
-					print("\nCorrect! That note was a '" + randomNote.randomNote.name + "'")
+				if notes.note_to_int(guess) == notes.note_to_int(randomNote.name):
+					print("\nCorrect! That note was a '" +  randomNote.name + "-" + str(randomNote.octave) + "'")
 					PythonEarTrainer.updateStats(1.0)
 				else:
-					print("\nIncorrect. You guessed: '" + guess + "'. That note was a '" + randomNote.randomNote.name + "-" + str(randomNote.randomNote.octave) + "'")
+					print("\nIncorrect. You guessed: '" + guess + "'. That note was a '" + randomNote.name + "-" + str(randomNote.octave) + "'")
 					PythonEarTrainer.updateStats(0.0)
 			break
 
@@ -304,7 +304,7 @@ class PythonEarTrainer:
 
 	@staticmethod
 	def getRandomInterval():
-		randomRootNote = Note( PythonEarTrainer.getRandomRoot(), PythonEarTrainer.octave )
+		randomRootNote = Note( PythonEarTrainer.getRandomRoot(), PythonEarTrainer.octave, None, 100, 1 )
 		randomRootName = randomRootNote.name
 		listOfIntervalFunctions = []
 		for intervalType in PythonEarTrainer.chordOrIntervalTypeChoices:
@@ -317,12 +317,12 @@ class PythonEarTrainer:
 			# TODO adjust odds as needed
 			if( diceRoll < 0.5 ):
 				# returns an inverted interval
-				return RandomInterval( Note( randomIntervalName, PythonEarTrainer.octave ), randomRootNote, PythonEarTrainer.calculateIntervalType( randomIntervalName, randomRootName ) )
+				return RandomInterval( Note( randomIntervalName, PythonEarTrainer.octave, None, 100, 1 ), randomRootNote, PythonEarTrainer.calculateIntervalType( randomIntervalName, randomRootName ) )
 			else:
 				# returns the normal interval
-				return RandomInterval( randomRootNote, Note( randomIntervalName, PythonEarTrainer.octave ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
+				return RandomInterval( randomRootNote, Note( randomIntervalName, PythonEarTrainer.octave, None, 100, 1 ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
 		else:
-			return RandomInterval( randomRootNote, Note( randomIntervalName, PythonEarTrainer.octave ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
+			return RandomInterval( randomRootNote, Note( randomIntervalName, PythonEarTrainer.octave, None, 100, 1 ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
 
 	@staticmethod
 	def playAndGuessRandomInterval(randomInterval):
