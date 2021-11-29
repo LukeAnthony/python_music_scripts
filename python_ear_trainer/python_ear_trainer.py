@@ -255,7 +255,7 @@ class PythonEarTrainer:
 					PythonEarTrainer.updateStats(1.0)
 					print("You were correct. The chord type was: " + typeGuess)
 				else:
-					print("Incorrect. You guessed: " + typeGuess + ". The chord type(s) were: " + randomChord.chordTypeList)
+					print("Incorrect. You guessed: " + typeGuess + ". The chord type(s) were: " + str(randomChord.chordTypeList))
 					PythonEarTrainer.updateStats(0.0)
 
 			if(nameGuess == randomChord.chordName):
