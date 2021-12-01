@@ -22,13 +22,14 @@ class PythonEarTrainer:
 	octave = 0
 	invertChordOrInterval = False
 	majorMinorAllocation = 0
-	randomizedOctave = False
+
 	firstAttempt = True
 	correctGuesses = 0.0
 	totalAttempts = 0.0
 	percentCorrect = ""
-	randomOctaveFloor = 1
-	randomOctaveCeiling = 4
+	defaultOctaveList = [ 1, 2, 3, 4, 5, 6 ]
+	octaveChoices = []
+	octave = 0
 	# use same list and boolean for interval type choices and chord type choice
 	chordOrIntervalTypeChoices = []
 	moreThanOneChordOrIntervalTypeChoice = len(chordOrIntervalTypeChoices) > 1
@@ -117,25 +118,31 @@ class PythonEarTrainer:
 		# resetting choices so you don't add to a populated list
 		PythonEarTrainer.chordorIntervalTypeChoices = []
 		PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = False
+		PythonEarTrainer.octaveChoices = []
 
 		PythonEarTrainer.noteChordOrInterval = input("Do you want to hear a random note, a random chord, or a random interval? Enter 'N' for note, 'C' for chord, 'I' for interval ")
 		if( not PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) ):
 			raise ValueError("Input wasn't 'N','C', or 'I")
 		
-		PythonEarTrainer.noteRange = int(input("Starting at C, How many notes would you like to shuffle between. Ex) 1 = (C), 2 = (C,C#), 3 = (C,Db,D)... " ))
+		PythonEarTrainer.noteRange = int(input("Starting at C, how many notes would you like the program to randomly choose from. Ex) 1 = (C), 2 = (C,C#), 3 = (C,Db,D)... " ))
 		if( PythonEarTrainer.noteRange < 1 or PythonEarTrainer.noteRange > 12 ):
 			raise ValueError("Range must be between 1 and 12, inclusive")
 
-		octaveString = input("Which octave, from 1-6, do you want to note/chord/interval to be in? Type R to randomize between octaves 1 and 4 (the range of a bass guitar) ")
-		if( octaveString.lower() == "r" ):
-			PythonEarTrainer.randomizeOctave()
-			PythonEarTrainer.randomizedOctave = True
+		octaveString = input("Which octave(s), from 1-6, do you want to the program to randomly place the note/chord/interval in? Type the octaves separated by a comma (ex: 1,2,3). Type 'all' to randomly choose between octaves 1-6 ")
+		if( octaveString.lower() == "all" ):
+			PythonEarTrainer.octaveChoices = PythonEarTrainer.defaultOctaveList
 		else:
-			octaveInt = int(octaveString)
-			if( octaveInt > 6 or octaveInt < 1 ):
-				raise ValueError("Octave must be between 1 and 6")
-			PythonEarTrainer.octave = octaveInt
-			PythonEarTrainer.randomizedOctave = False
+			octaveChoices = octaveString.split(",")
+			for octaveChoice in octaveChoices:
+				octaveChoiceInt = int(octaveChoice)
+				if octaveChoiceInt not in PythonEarTrainer.defaultOctaveList:
+					print("Don't recognize octave : " + octaveChoice)
+				else:
+					PythonEarTrainer.octaveChoices.append(octaveChoiceInt)
+			# if no input was recognized
+			if( not PythonEarTrainer.octaveChoices ):
+				raise ValueError("Must input at least one random octave choice")
+		PythonEarTrainer.setRandomOctave()
 
 		if PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) or PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval):
 			if PythonEarTrainer.isInterval( PythonEarTrainer.noteChordOrInterval ):
@@ -174,8 +181,8 @@ class PythonEarTrainer:
 			PythonEarTrainer.invertChordOrInterval = invertChordOrInterval.lower() == "y"
 
 	@staticmethod
-	def randomizeOctave():
-		PythonEarTrainer.octave = random.randint(PythonEarTrainer.randomOctaveFloor, PythonEarTrainer.randomOctaveCeiling)
+	def setRandomOctave():
+		PythonEarTrainer.octave = PythonEarTrainer.octaveChoices[random.randrange(len(PythonEarTrainer.octaveChoices))]
 
 	@staticmethod
 	def getRandomChord():
@@ -423,8 +430,7 @@ while(True):
 		if(settings.lower() == "n" ):
 			PythonEarTrainer.getSettings()
 		elif(settings.lower() == "r" ):
-			if(PythonEarTrainer.randomizedOctave):
-				PythonEarTrainer.randomizeOctave()
+			PythonEarTrainer.setRandomOctave()
 		else:
 			raise ValueError("Need to enter R or N next time")
 	if( PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval) ):
