@@ -128,7 +128,7 @@ class PythonEarTrainer:
 		if( PythonEarTrainer.noteRange < 1 or PythonEarTrainer.noteRange > 12 ):
 			raise ValueError("Range must be between 1 and 12, inclusive")
 
-		octaveString = input("Which octave(s), from 1-6, do you want to the program to randomly place the note/chord/interval in? Type the octaves separated by a comma (ex: 1,2,3). Type 'all' to randomly choose between octaves 1-6 ")
+		octaveString = input("Which octave(s), from 1-6, do you want to the program to randomly place the note/chord/root of the interval in? Type the octaves separated by a comma (ex: 1,2,3). Type 'all' to randomly choose between octaves 1-6 ")
 		if( octaveString.lower() == "all" ):
 			PythonEarTrainer.octaveChoices = PythonEarTrainer.defaultOctaveList
 		else:
@@ -226,26 +226,28 @@ class PythonEarTrainer:
 	# Need to use chords.determine https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L919 
 	def playAndGuessRandomChord(randomChord):
 		b = Bar()
-		# placing the chord as a half note in the bar
+		# placing the chord as two half notes in the bar
+		b.place_notes(randomChord.chordTones, 2)
 		b.place_notes(randomChord.chordTones, 2)
 		rootGuess = ""
 		typeGuess = ""
 		nameGuess = ""
 		while True:
 			# play bar on channel 1 at 60bpm
+			# plays half note four times
 			fluidsynth.play_Bar(b, 1, 60)
-
+			fluidsynth.play_Bar(b, 1, 60)
 			if not rootGuess or rootGuess.lower() == "r":
-				rootGuess = input("What do you think the root of that chord was? Press R to repeat it ")
+				rootGuess = input("What do you think the root of this chord is? Press R to repeat it ")
 				if(rootGuess.lower() == "r"):
 					continue
 			# only ask if user entered 'all' or more than one type and if a guess hasn't been made already/if user asked to repeat the chord
 			if (not typeGuess or typeGuess.lower() == "r") and PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice:
-				typeGuess = input("What do you think the type of that chord (triad, augmented, suspended, etc...)? Press R to repeat it ")
+				typeGuess = input("What do you think the type of this chord is (triad, augmented, suspended, etc...)? Press R to repeat it ")
 				if(typeGuess.lower() == "r"):
 					continue
 			if not nameGuess or nameGuess.lower() == "r":
-				nameGuess = input("Excluding the root, what was the name of that chord (suspended second, major sixth, etc...)? Press R to repeat it ")
+				nameGuess = input("Excluding the root, what is the name of this chord (suspended second, major sixth, etc...)? Press R to repeat it ")
 				if(nameGuess.lower() == "r"):
 					continue
 
@@ -287,8 +289,13 @@ class PythonEarTrainer:
 	@staticmethod
 	def playAndGuessRandomNote(randomNote):
 		while True:
-			fluidsynth.play_Note(randomNote)
-			guess = input("What note do you think that was? Press R to repeat it ")
+			b = Bar()
+			b.place_notes(randomNote.name, 2)
+			b.place_notes(randomNote.name, 2)
+			# plays half note four times 
+			fluidsynth.play_Bar(b, 1, 60)
+			fluidsynth.play_Bar(b, 1, 60)
+			guess = input("What note do you think this is? Press R to repeat it ")
 			if guess.lower() == "r":
 				continue
 			elif not notes.is_valid_note(guess):
@@ -313,11 +320,14 @@ class PythonEarTrainer:
 			"major third" : ["M3"],
 			"perfect fourth" : ["P4"],
 			"minor fifth" : ["A4,dim5"],
+			"perfect fifth" : ["A4,dim5"],
 			"minor sixth" : ["m6"],
 			"major sixth" : ["M6"],
 			"minor seventh" : ["m7"],
 			"major seventh" : ["M7"],
+			"perfect octave" : ["P8"]
 		}
+		# TODO logic for perfect octave
 		intervalType = intervals.determine( firstNoteName, secondNoteName )
 		return intervalNamesToAbbreviations[intervalType]
 
@@ -329,7 +339,10 @@ class PythonEarTrainer:
 		for intervalType in PythonEarTrainer.chordOrIntervalTypeChoices:
 			listOfIntervalFunctions.append(PythonEarTrainer.intervalTypesDictionary[intervalType])
 		# giving each interval an equal chance of being selected
-		randomIntervalName = listOfIntervalFunctions[random.randrange(len(listOfIntervalFunctions))](randomRootName)
+		randomIntervalFunction = listOfIntervalFunctions[random.randrange(len(listOfIntervalFunctions))]
+		#randomIntervalName = listOfIntervalFunctions[random.randrange(len(listOfIntervalFunctions))](randomRootName)
+		randomIntervalName = randomIntervalFunction(randomRootName)
+		print(randomIntervalName)
 		if( PythonEarTrainer.invertChordOrInterval ):
 			diceRoll = random.random()
 			# 50% chance to invert
@@ -341,55 +354,67 @@ class PythonEarTrainer:
 				# returns the normal interval
 				return RandomInterval( randomRootNote, Note( randomIntervalName, PythonEarTrainer.octave, None, 105, 1 ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
 		else:
+			# TODO bug where, if user doesnt want inversions but supplies only one octave to be randomized from, second note placed lower than first if the random interval type would have reached into the next octave
+			# need to subtract first note from the second. if negative, second note should be up an octave
+				# https://144notes.org/bass-guitar/
+			# if secondNote - firstNote = 0, would be same note. should do a 50-50 coin flip for unison or perfect octave
 			return RandomInterval( randomRootNote, Note( randomIntervalName, PythonEarTrainer.octave, None, 105, 1 ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
 
 	@staticmethod
 	def playAndGuessRandomInterval(randomInterval):
 		b = Bar()
 		# quarter note each
-		b.place_notes(randomInterval.get_first_note_name(), 4)
-		b.place_notes(randomInterval.get_second_note_name(), 4)
+		b.place_notes(randomInterval.get_first_note_name(), 2)
+		b.place_notes(randomInterval.get_second_note_name(), 2)
 		firstNoteGuess = ""
 		secondNoteGuess = ""
 		intervalGuess = ""
+		# TODO bug where pressing R on second or third choices makes you re-enter previous choices
 		while True:
+			# plays interval twice
 			fluidsynth.play_Bar(b, 1, 60)
-			firstNoteGuess = input("What do you think the first note was? Press R to hear it again ")
-			if firstNoteGuess.lower() == "r":
-				continue
-			elif not notes.is_valid_note(firstNoteGuess):
-				print("You entered: " + firstNoteGuess + ", which isn't a note. Must enter a valid note")
-				continue
-			else:
-				if( notes.note_to_int(firstNoteGuess) == notes.note_to_int(randomInterval.get_first_note_name()) ):
-					print("Correct! The first note was: " + firstNoteGuess)
+			fluidsynth.play_Bar(b, 1, 60)
+			if not firstNoteGuess or firstNoteGuess.lower() == "r":
+				firstNoteGuess = input("What do you think the first note was? Press R to hear it again ")
+				if firstNoteGuess.lower() == "r":
+					continue
+				elif not notes.is_valid_note(firstNoteGuess):
+					print("You entered: " + firstNoteGuess + ", which isn't a note. Must enter a valid note")
+					continue
+				else:
+					if( notes.note_to_int(firstNoteGuess) == notes.note_to_int(randomInterval.get_first_note_name()) ):
+						print("Correct! The first note was: " + firstNoteGuess)
+						PythonEarTrainer.updateStats(1.0)
+					else:
+						print("Incorrect! The first note wasn't : " + firstNoteGuess + ". It was " + randomInterval.get_first_note_name())
+						PythonEarTrainer.updateStats(0.0)
+			
+			if not secondNoteGuess or secondNoteGuess.lower() == "r":
+				secondNoteGuess = input("What do you think the second note was? Press R to hear it again ")
+				if secondNoteGuess.lower() == "r":
+					continue
+				elif not notes.is_valid_note(secondNoteGuess):
+					print("You entered: " + secondNoteGuess + ", which isn't a note. Must enter a valid note")	
+					continue
+				else:
+					if( notes.note_to_int(secondNoteGuess) == notes.note_to_int(randomInterval.get_second_note_name()) ):
+						print("Correct! The second note was: " + secondNoteGuess)
+						PythonEarTrainer.updateStats(1.0)
+					else:
+						print("Incorrect! The second note wasn't : " + secondNoteGuess + ". It was " + randomInterval.get_second_note_name())
+						PythonEarTrainer.updateStats(0.0)
+			
+			if not intervalGuess or intervalGuess.lower() == "r":
+				intervalGuess = input("What do you think the interval (m2, P4, etc...) was? Press R to hear it again ")
+				if not intervalGuess or intervalGuess.lower() == "r":
+					continue
+				elif( intervalGuess in randomInterval.intervalType ):
+					print("Correct! The interval was: " + intervalGuess)
 					PythonEarTrainer.updateStats(1.0)
 				else:
-					print("Incorrect! The first note wasn't : " + firstNoteGuess + ". It was " + randomInterval.get_first_note_name())
+					print("Incorrect! The interval wasn't : " + intervalGuess + ". It was " + str(randomInterval.intervalType))
 					PythonEarTrainer.updateStats(0.0)
-			
-			secondNoteGuess = input("What do you think the second note was? Press R to hear it again ")
-			if secondNoteGuess.lower() == "r":
-				continue
-			elif not notes.is_valid_note(secondNoteGuess):
-				print("You entered: " + secondNoteGuess + ", which isn't a note. Must enter a valid note")	
-				continue
-			else:
-				if( notes.note_to_int(secondNoteGuess) == notes.note_to_int(randomInterval.get_second_note_name()) ):
-					print("Correct! The second note was: " + secondNoteGuess)
-					PythonEarTrainer.updateStats(1.0)
-				else:
-					print("Incorrect! The second note wasn't : " + secondNoteGuess + ". It was " + randomInterval.get_second_note_name())
-					PythonEarTrainer.updateStats(0.0)
-			
-			intervalGuess = input("What do you think the interval (m2, P4, etc...) was? Press R to hear it again ")
-			if( intervalGuess in randomInterval.intervalType ):
-				print("Correct! The interval was: " + intervalGuess)
-				PythonEarTrainer.updateStats(1.0)
-			else:
-				print("Incorrect! The interval wasn't : " + intervalGuess + ". It was " + randomInterval.intervalType)
-				PythonEarTrainer.updateStats(0.0)
-			break
+				break
 
 class RandomChord:
 	def __init__(self, randomRoot, chordTones, chordTonesAsNoteObjects, chordTypeList, chordName):

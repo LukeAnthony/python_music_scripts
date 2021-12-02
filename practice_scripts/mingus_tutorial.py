@@ -60,7 +60,7 @@ print(randoMChordWithTones)
 
 b = Bar()
 b.place_notes(randoMChordWithTones, 2)
-fluidsynth.play_Bar(b, 1, 60)
+#fluidsynth.play_Bar(b, 1, 60)
 chordName = chords.determine(randomChord)
 print(chordName)
 chordNameLessRootList = chordName[0].split(' ')[1:]
@@ -76,7 +76,13 @@ note = Note("C", 4)
 print(randomNote)
 print(note)
 minorSecond = intervals.minor_second(note.name)
+print(minorSecond)
 minorSecondNote = Note(minorSecond, 4)
 print(minorSecondNote)
 print(intervals.determine(note.name, minorSecond, False))
+#first note
+print(notes.note_to_int("Eb"))
+#second note
+print(notes.note_to_int("Db"))
+
 
