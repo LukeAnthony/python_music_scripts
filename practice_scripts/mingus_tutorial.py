@@ -7,7 +7,7 @@ import mingus.core.intervals as intervals
 from mingus.midi import fluidsynth
 from mingus.containers import NoteContainer
 from mingus.containers import Bar
-import random
+import random, math
 
 # should return F major or d minor
 print(keys.get_key(-1))
@@ -84,5 +84,10 @@ print(intervals.determine(note.name, minorSecond, False))
 print(notes.note_to_int("Eb"))
 #second note
 print(notes.note_to_int("Db"))
+
+
+print(math.floor(10 / 12)) # 0
+print( math.floor(14 / 12 ) )
+print( math.floor(17 / 12 ) )
 
 

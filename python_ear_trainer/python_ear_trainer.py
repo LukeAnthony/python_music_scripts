@@ -7,8 +7,7 @@ from mingus.containers import Note
 from mingus.containers import NoteContainer
 from mingus.containers import Bar
 from mingus.midi import fluidsynth
-import random
-import sys
+import random, sys, math
 
 try:
 	fluidsynth.init(sys.argv[1])
@@ -30,6 +29,8 @@ class PythonEarTrainer:
 	defaultOctaveList = [ 1, 2, 3, 4, 5, 6 ]
 	octaveChoices = []
 	octave = 0
+	# TODO have user input notes they want to hear
+	noteChoices = []
 	# use same list and boolean for interval type choices and chord type choice
 	chordOrIntervalTypeChoices = []
 	moreThanOneChordOrIntervalTypeChoice = len(chordOrIntervalTypeChoices) > 1
@@ -193,6 +194,8 @@ class PythonEarTrainer:
 		# giving each chord an equal chance of being selected
 		# TODO maybe give certain chords higher probability than others of appearing
 		randomChord = listOfChordFunctions[random.randrange(len(listOfChordFunctions))](randomRoot)
+		print("random root = " + str(randomRoot))
+		print("Random chord = " + str(randomChord))
 		if( PythonEarTrainer.invertChordOrInterval ):
 			secondDiceRoll = random.random()
 			# will always invert given these odds. 
@@ -208,9 +211,36 @@ class PythonEarTrainer:
 			else:
 				randomChord = chords.fourth_inversion(randomChord)
 		randomChordAsNoteObjects = []
+		currentOctaveAboveRoot = 0
+		# mingus' note_to_int + 12 for every octave higher than lowest octave in the chord
+		previousNoteValue = 0
 		for tone in randomChord:
-			toneAsNote = Note(tone, PythonEarTrainer.octave, None, 110, 1)
-			randomChordAsNoteObjects.append(toneAsNote)
+			# TODO address bug where tone should be octave higher than root but is placed in same octave (same as interval)
+			# c minor 11th chord tones are  ['C', 'Eb', 'G', 'Bb', 'F'], F should be the only one an octave higher
+			# for each tone, 
+			randomChordAsNoteObjectsIndex = len(randomChordAsNoteObjects) - 1
+			toneValue = notes.note_to_int(tone)
+			# if first note of the chord
+			if randomChordAsNoteObjectsIndex == -1:
+				toneAsNote = Note(tone, PythonEarTrainer.octave, None, 110, 1)
+				randomChordAsNoteObjects.append(toneAsNote)
+			else:
+				previousNote = randomChordAsNoteObjects[randomChordAsNoteObjectsIndex]
+				previousNoteOctave = previousNote.octave
+				toneDistanceFromPreviousNote = toneValue - previousNoteValue
+				if toneDistanceFromPreviousNote < 0:
+					# add 12 to the tone value until it is > previous note value
+					# see how many octaves above the root we already are
+					newToneOctave = previousNoteOctave
+					while toneValue < previousNoteValue
+						toneValue = toneValue + 12
+						# TODO this won't work if note is multiple octaves behind
+						newToneOctave = newToneOctave + 1
+					currentOctaveAboveRoot = math.floor( toneValue / 12 )
+				toneAsNote = Note(tone, PythonEarTrainer.octave + currentOctaveAboveRoot, None, 110, 1)
+				randomChordAsNoteObjects.append(toneAsNote)
+			previousNoteValue = toneValue
+			print("Tone = " + str(toneAsNote.name) + " tone octave = " + str(toneAsNote.octave))
 		#.determine returns all matching names in list. first entry is most accurate. excluding root note in the chord name since we already have it
 		chordName = ' '.join(chords.determine(randomChord)[0].split(' ')[1:])
 		# to get chord type list:
@@ -227,6 +257,7 @@ class PythonEarTrainer:
 	def playAndGuessRandomChord(randomChord):
 		b = Bar()
 		# placing the chord as two half notes in the bar
+		print(randomChord.chordTones)
 		b.place_notes(randomChord.chordTones, 2)
 		b.place_notes(randomChord.chordTones, 2)
 		rootGuess = ""
@@ -342,30 +373,30 @@ class PythonEarTrainer:
 		randomIntervalFunction = listOfIntervalFunctions[random.randrange(len(listOfIntervalFunctions))]
 		#randomIntervalName = listOfIntervalFunctions[random.randrange(len(listOfIntervalFunctions))](randomRootName)
 		randomIntervalName = randomIntervalFunction(randomRootName)
-		print(randomIntervalName)
+		secondNoteOctave = PythonEarTrainer.octave if (notes.note_to_int(randomIntervalName) - notes.note_to_int(randomRootName) > 0 ) else PythonEarTrainer.octave + 1
 		if( PythonEarTrainer.invertChordOrInterval ):
 			diceRoll = random.random()
 			# 50% chance to invert
 			# TODO adjust odds as needed
 			if( diceRoll < 0.5 ):
 				# returns an inverted interval
-				return RandomInterval( Note( randomIntervalName, PythonEarTrainer.octave, None, 105, 1 ), randomRootNote, PythonEarTrainer.calculateIntervalType( randomIntervalName, randomRootName ) )
+				return RandomInterval( Note( randomIntervalName, secondNoteOctave, None, 105, 1 ), randomRootNote, PythonEarTrainer.calculateIntervalType( randomIntervalName, randomRootName ) )
 			else:
 				# returns the normal interval
-				return RandomInterval( randomRootNote, Note( randomIntervalName, PythonEarTrainer.octave, None, 105, 1 ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
+				return RandomInterval( randomRootNote, Note( randomIntervalName, secondNoteOctave, None, 105, 1 ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
 		else:
 			# TODO bug where, if user doesnt want inversions but supplies only one octave to be randomized from, second note placed lower than first if the random interval type would have reached into the next octave
 			# need to subtract first note from the second. if negative, second note should be up an octave
 				# https://144notes.org/bass-guitar/
 			# if secondNote - firstNote = 0, would be same note. should do a 50-50 coin flip for unison or perfect octave
-			return RandomInterval( randomRootNote, Note( randomIntervalName, PythonEarTrainer.octave, None, 105, 1 ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
+			return RandomInterval( randomRootNote, Note( randomIntervalName, secondNoteOctave, None, 105, 1 ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
 
 	@staticmethod
 	def playAndGuessRandomInterval(randomInterval):
 		b = Bar()
 		# quarter note each
-		b.place_notes(randomInterval.get_first_note_name(), 2)
-		b.place_notes(randomInterval.get_second_note_name(), 2)
+		b.place_notes(randomInterval.get_first_note_name_and_octave(), 2)
+		b.place_notes(randomInterval.get_second_note_name_and_octave(), 2)
 		firstNoteGuess = ""
 		secondNoteGuess = ""
 		intervalGuess = ""
@@ -441,8 +472,14 @@ class RandomInterval:
 	def get_first_note_name(self):
 		return self.firstNote.name
 
+	def get_first_note_name_and_octave(self):
+		return self.firstNote.name + "-" + str(self.firstNote.octave)
+
 	def get_second_note_name(self):
 		return self.secondNote.name
+
+	def get_second_note_name_and_octave(self):
+		return self.secondNote.name + "-" + str(self.secondNote.octave)
 
 # TODO add chord progression guessing
 # TODO add correct/incorrect sound effects
