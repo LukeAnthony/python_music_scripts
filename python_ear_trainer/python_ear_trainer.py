@@ -202,22 +202,17 @@ class PythonEarTrainer:
 			# TODO adjust odds manually as needed to mix inversions in with regular chords
 			if( secondDiceRoll < 0.00 ):
 				pass
-			elif( secondDiceRoll < 0.25 ):
+			elif( secondDiceRoll < 0.34 ):
 				randomChord = chords.first_inversion(randomChord)
-			elif( secondDiceRoll < 0.50 ):
+			elif( secondDiceRoll < 0.67 ):
 				randomChord = chords.second_inversion(randomChord)
-			elif( secondDiceRoll < 0.75 ):
-				randomChord = chords.third_inversion(randomChord)
 			else:
-				randomChord = chords.fourth_inversion(randomChord)
+				randomChord = chords.third_inversion(randomChord)
 		randomChordAsNoteObjects = []
 		currentOctaveAboveRoot = 0
 		# mingus' note_to_int + 12 for every octave higher than lowest octave in the chord
 		previousNoteValue = 0
 		for tone in randomChord:
-			# TODO address bug where tone should be octave higher than root but is placed in same octave (same as interval)
-			# c minor 11th chord tones are  ['C', 'Eb', 'G', 'Bb', 'F'], F should be the only one an octave higher
-			# for each tone, 
 			randomChordAsNoteObjectsIndex = len(randomChordAsNoteObjects) - 1
 			toneValue = notes.note_to_int(tone)
 			# if first note of the chord
@@ -229,18 +224,15 @@ class PythonEarTrainer:
 				previousNoteOctave = previousNote.octave
 				toneDistanceFromPreviousNote = toneValue - previousNoteValue
 				if toneDistanceFromPreviousNote < 0:
-					# add 12 to the tone value until it is > previous note value
-					# see how many octaves above the root we already are
-					newToneOctave = previousNoteOctave
-					while toneValue < previousNoteValue
+					# TODO see if this works with inversions??
+					while toneValue - previousNoteValue < 0:
 						toneValue = toneValue + 12
-						# TODO this won't work if note is multiple octaves behind
-						newToneOctave = newToneOctave + 1
-					currentOctaveAboveRoot = math.floor( toneValue / 12 )
+						currentOctaveAboveRoot = currentOctaveAboveRoot + 1
 				toneAsNote = Note(tone, PythonEarTrainer.octave + currentOctaveAboveRoot, None, 110, 1)
 				randomChordAsNoteObjects.append(toneAsNote)
 			previousNoteValue = toneValue
-			print("Tone = " + str(toneAsNote.name) + " tone octave = " + str(toneAsNote.octave))
+			currentOctaveAboveRoot = 0
+			print("Tone = " + str(toneAsNote.name) + " tone value = " + str(toneValue) + " tone octave = " + str(toneAsNote.octave))
 		#.determine returns all matching names in list. first entry is most accurate. excluding root note in the chord name since we already have it
 		chordName = ' '.join(chords.determine(randomChord)[0].split(' ')[1:])
 		# to get chord type list:
