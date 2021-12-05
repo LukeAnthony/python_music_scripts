@@ -29,7 +29,8 @@ class PythonEarTrainer:
 	defaultOctaveList = [ 1, 2, 3, 4, 5, 6 ]
 	octaveChoices = []
 	octave = 0
-	# TODO have user input notes they want to hear
+	# notes are converted to int values so only listing flats here is fine
+	defaultNoteList = [ "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B" ]
 	noteChoices = []
 	# use same list and boolean for interval type choices and chord type choice
 	chordOrIntervalTypeChoices = []
@@ -120,14 +121,21 @@ class PythonEarTrainer:
 		PythonEarTrainer.chordorIntervalTypeChoices = []
 		PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = False
 		PythonEarTrainer.octaveChoices = []
+		PythonEarTrainer.noteChoices = []
 
 		PythonEarTrainer.noteChordOrInterval = input("Do you want to hear a random note, a random chord, or a random interval? Enter 'N' for note, 'C' for chord, 'I' for interval ")
 		if( not PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) ):
 			raise ValueError("Input wasn't 'N','C', or 'I")
 		
-		PythonEarTrainer.noteRange = int(input("Starting at C, how many notes would you like the program to randomly choose from. Ex) 1 = (C), 2 = (C,C#), 3 = (C,Db,D)... " ))
-		if( PythonEarTrainer.noteRange < 1 or PythonEarTrainer.noteRange > 12 ):
-			raise ValueError("Range must be between 1 and 12, inclusive")
+		noteRange = input("Which notes would you like the progdram to randomly choose between. Enter them separated by commas (ex: C,Eb,G#,F). Enter 'all' to shuffle between all notes " )
+		if noteRange.lower() == "all":
+			PythonEarTrainer.noteChoices = PythonEarTrainer.defaultNoteList
+		noteRangeSplit = noteRange.split(',')
+		for note in noteRangeSplit:
+			if not notes.is_valid_note(note):
+				print("Don't recognzie note: " + note)
+			else:
+				PythonEarTrainer.noteChoices.append(note)
 
 		octaveString = input("Which octave(s), from 1-6, do you want to the program to randomly place the note/chord/root of the interval in? Type the octaves separated by a comma (ex: 1,2,3). Type 'all' to randomly choose between octaves 1-6 ")
 		if( octaveString.lower() == "all" ):
@@ -306,8 +314,9 @@ class PythonEarTrainer:
 
 	@staticmethod
 	def getRandomRoot():
+		return PythonEarTrainer.noteChoices[random.randint(0, len(PythonEarTrainer.noteChoices))]
 		# https://github.com/bspaans/python-mingus/blob/master/mingus/core/notes.py#L36
-		return notes.int_to_note(random.randint(0, PythonEarTrainer.noteRange - 1), "b" if random.random() > .5 else "#")
+		# return notes.int_to_note(random.randint(0, PythonEarTrainer.noteRange - 1), "b" if random.random() > .5 else "#")
 
 	@staticmethod
 	def playAndGuessRandomNote(randomNote):
