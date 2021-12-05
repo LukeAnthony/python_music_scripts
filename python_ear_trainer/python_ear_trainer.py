@@ -127,15 +127,26 @@ class PythonEarTrainer:
 		if( not PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) ):
 			raise ValueError("Input wasn't 'N','C', or 'I")
 		
-		noteRange = input("Which notes would you like the progdram to randomly choose between. Enter them separated by commas (ex: C,Eb,G#,F). Enter 'all' to shuffle between all notes " )
+		noteRange = input("Which notes would you like the program to randomly choose between. Enter them separated by commas (ex: C,Eb,G#,F). Or enter 'all' to shuffle between all notes. Or enter a range of numbers, from 1-12 in the format 'x-y' with C=1 and B=12, to shuffle between those (ex: 1-5 to shuffly between C,C#,D,D#,E) " )
 		if noteRange.lower() == "all":
 			PythonEarTrainer.noteChoices = PythonEarTrainer.defaultNoteList
-		noteRangeSplit = noteRange.split(',')
-		for note in noteRangeSplit:
-			if not notes.is_valid_note(note):
-				print("Don't recognzie note: " + note)
+		numRange = '-' in noteRange
+		if numRange:
+			noteRangeSplit = noteRange.split('-')
+			if len(noteRangeSplit) != 2:
+				raise ValueError("Incorrectly entered range of numbers. Must be in format 'x-y")
 			else:
-				PythonEarTrainer.noteChoices.append(note)
+				floor = int(noteRangeSplit[0]) - 1
+				ceiling = int(noteRangeSplit[1])
+				for x in range( floor, ceiling):
+					PythonEarTrainer.noteChoices.append(notes.int_to_note(x))
+		else:
+			noteRangeSplit = noteRange.split(',')
+			for note in noteRangeSplit:
+				if not notes.is_valid_note(note):
+					print("Don't recognzie note: " + note)
+				else:
+					PythonEarTrainer.noteChoices.append(note)
 
 		octaveString = input("Which octave(s), from 1-6, do you want to the program to randomly place the note/chord/root of the interval in? Type the octaves separated by a comma (ex: 1,2,3). Type 'all' to randomly choose between octaves 1-6 ")
 		if( octaveString.lower() == "all" ):
@@ -314,7 +325,7 @@ class PythonEarTrainer:
 
 	@staticmethod
 	def getRandomRoot():
-		return PythonEarTrainer.noteChoices[random.randint(0, len(PythonEarTrainer.noteChoices))]
+		return PythonEarTrainer.noteChoices[random.randint(0, len(PythonEarTrainer.noteChoices) - 1)]
 		# https://github.com/bspaans/python-mingus/blob/master/mingus/core/notes.py#L36
 		# return notes.int_to_note(random.randint(0, PythonEarTrainer.noteRange - 1), "b" if random.random() > .5 else "#")
 
