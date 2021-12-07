@@ -252,7 +252,7 @@ class PythonEarTrainer:
 			previousNoteValue = toneValue
 			currentOctaveAboveRoot = 0
 			print("Tone = " + str(toneAsNote.name) + " tone value = " + str(toneValue) + " tone octave = " + str(toneAsNote.octave))
-		#.determine returns all matching names in list. first entry is most accurate. excluding root note in the chord name since we already have it
+		#.determine() returns all matching names in list. first entry is most accurate. excluding root note in the chord name since we already have it
 		chordName = ' '.join(chords.determine(randomChord)[0].split(' ')[1:])
 		# to get chord type list:
 			# for each key in chordTypesDictionary, if tuple[0] contains chord name, add key to chord type list
