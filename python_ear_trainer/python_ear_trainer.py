@@ -104,6 +104,7 @@ class PythonEarTrainer:
 		return input.lower() == "i"
 
 	"""
+		TODO Update 
 		Decision Tree:
 			Decide note, chord, or interval
 			Decide which range of notes you want to hear
