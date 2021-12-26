@@ -34,7 +34,7 @@ class FretboardPlotter:
 		strings = {i:0 for i in 'EADG'}
 		for i in strings.keys():
 			start = self.whole_notes.index(i)
-			strings[i] = self.whole_notes[start:start+20]
+			strings[i] = self.whole_notes[start:start+21]
 		self.strings = strings
 
 	def find_notes(self, scale):
@@ -46,8 +46,8 @@ class FretboardPlotter:
 	            # Diego: "append index where note of the scale is found in"
 	            ind = self.strings[key].index(note)
 	            indexes.append(ind)
-	            # Diego: "because there are 20 frets, there are duplicate notes in the string"
-	            if ind <= 7:
+	            #because there are 20 frets (plus 1 open string), there are duplicate notes in the string
+	            if ind <= 8:
 	                indexes.append(ind+12)
 	        # list notes in order of appearance on the fretboard
 	        indexes.sort()
@@ -58,20 +58,27 @@ class FretboardPlotter:
 	def plot(self, key, intervals, graphTitle, night=True):
 		scale = self.get_notes(key, intervals)
 		# Diego: "Plot Strings"
-		fig, ax = plt.subplots(2, figsize=(20,4))
+		fig, ax = plt.subplots(2, figsize=(21,4))
 		background = ['white', 'black']
+		# creates 4 lines in each plot for the 4 strings
 		for i in range(1,5):
-			ax[0].plot([i for a in range(22)])
-			ax[1].plot([i for a in range(22)])
-		# Diego: "Plotting Frets"
+			for graph in ax:
+				graph.plot([i for a in range(22)])
+			#ax[0].plot([i for a in range(22)])
+			#ax[1].plot([i for a in range(22)])
 		
+		#creates the lines to simulate the fretboard in each graph
 		for i in range(1,21):
 			# lefty --> i == 9? 8?
 			# if i == 9:
 			# righty
-			if i == 12:
+			if i == 9:
 				ax[0].axvline(x=i, color='gray', linewidth=3.5)
 				ax[1].axvline(x=i, color='gray', linewidth=3.5)
+				continue
+			if i == 12:
+				ax[0].axvline(x=i, color='gray', linewidth=3.5)
+				ax[1].axvline(x=i, color=background[night-1], linewidth=0.5)
 				continue
 			ax[0].axvline(x=i, color=background[night-1], linewidth=0.5)
 			ax[1].axvline(x=i, color=background[night-1], linewidth=0.5)
@@ -83,8 +90,8 @@ class FretboardPlotter:
 		# Diego: "setting height and width of displayed guitar"
 		ax[0].set_xlim([0.5, 21])
 		ax[1].set_xlim([0.5, 21])
-		ax[0].set_ylim([0.4, 6.5])
-		ax[1].set_ylim([0.4, 6.5])
+		ax[0].set_ylim([0.4, 5])
+		ax[1].set_ylim([0.4, 5])
 		ax[0].set_facecolor(background[night])
 		ax[1].set_facecolor(background[night])
 		to_plot = self.find_notes(scale)
@@ -99,9 +106,9 @@ class FretboardPlotter:
 				color = 'w'
 				circleSize = 0.2
 				#lefty
-				x = 21 - i + 0.5
+				xLefty = 21 - i - 0.3
 				#righty 
-				xRighty = i + 0.5
+				xRighty = i + 0.55
 				# strings is a map of each string and their notes. 
 				# gets the list of notes for a given string and looks up the note at the index
 				note = self.strings[key][i]
@@ -111,21 +118,27 @@ class FretboardPlotter:
 					font = 15
 					color = 'yellow'
 					circleSize = 0.3
-				p = mpatches.Circle((x, y_val), circleSize)
-				pLefty = mpatches.Circle((x, y_val), circleSize)
+				p = mpatches.Circle((xRighty, y_val), circleSize)
+				pLefty = mpatches.Circle((xLefty, y_val), circleSize)
 				ax[0].add_patch(p)
 				ax[1].add_patch(pLefty)
-				ax[0].annotate(note, (x, y_val), color=color, weight='bold', fontsize=font, ha='center', va='center')
-				ax[1].annotate(note, (x, y_val), color=color, weight='bold', fontsize=font, ha='center', va='center')
+				ax[0].annotate(note, (xRighty, y_val), color=color, weight='bold', fontsize=font, ha='center', va='center')
+				ax[1].annotate(note, (xLefty, y_val), color=color, weight='bold', fontsize=font, ha='center', va='center')
 
 		#plt.title(graphTitle)
-		ax[0].set_title(graphTitle)
+		fig.suptitle(graphTitle + "\n Righty (top graph). Lefty (bottom graph)")
+		plt.subplots_adjust(None, None, None, None, None, 0.5)
 		ax[1].yaxis.tick_right()
-		plt.yticks(np.arange(1,5), ['E', 'A', 'D', 'G'])
+
+		ax[0].set_yticks(np.arange(1,5), ['E', 'A', 'D', 'G'])
+		ax[1].set_yticks(np.arange(1,5), ['E', 'A', 'D', 'G'])
+		#plt.yticks(np.arange(1,5), ['E', 'A', 'D', 'G'])
 
 		# Diego had offset at +0.5. shifting down slightly since i think it's easier to see open strings this way
 		# plt.xticks(np.arange(21)+0.45, np.arange(0,20))
-		plt.xticks(np.arange(21)+0.45, np.arange(-20,1))
+		ax[0].set_xticks(np.arange(21)+0.45, np.arange(0,21))
+		ax[1].set_xticks(np.arange(21)+0.45, np.arange(-20,1))
+		#plt.xticks(np.arange(21)+0.45, np.arange(-20,1))
 		plt.show()
 
 fretboardPlotter = FretboardPlotter()
@@ -161,4 +174,4 @@ cMajorNotesOnStrings = fretboardPlotter.find_notes(cMajorNotes)
 print(cMajorNotesOnStrings)
 
 print(fretboardPlotter.strings)
-fretboardPlotter.plot('C', fretboardPlotter.MAJOR_SCALE, "C Major Scale")
+fretboardPlotter.plot('B', fretboardPlotter.MAJOR_SCALE, "C Major Scale")
