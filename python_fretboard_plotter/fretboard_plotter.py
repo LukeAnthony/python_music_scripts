@@ -38,11 +38,12 @@ class FretboardPlotter:
 			# 	[('C', 'C'), ('C#', 'Db'), ('D', 'D'), ('D#', 'Eb'), ('E', 'E'), ('F', 'F'), ('F#', 'Gb'), ('G', 'G'), ('G#', 'Ab').....
 			sharpsAndFlats = list(zip(self.whole_notes_sharps, self.whole_notes_flats))
 			#start = index of the first tuple containing E|A|D|G in sharpsAndFlats
-			start = [y[0] for y in sharpsAndFlats].index(i)
+			start = [y[0] for y in sharpsAndFlats].index(i) 
 			strings[i] = sharpsAndFlats[start:start+21]
 		self.strings = strings
-		print(strings)
 
+	# look at scale value being passed in. if sharp look for sharps, if flat look for flats
+	# sharps will always be first element in tuple, flats will always be second element in tuple
 	def find_notes(self, scale):
 	    notes_strings = {i:0 for i in "EADG"}
 	    # for every string 
@@ -50,7 +51,12 @@ class FretboardPlotter:
 	        indexes = []
 	        for note in scale:
 	            # Diego: "append index where note of the scale is found in"
-	            ind = self.strings[key].index(note)
+	            ind = -1
+	            tuplesOfStringNotes = self.strings[key]
+	            for index, tup in enumerate(tuplesOfStringNotes):
+	            	if note in tup:
+	            		ind = index
+	            #ind = self.strings[key].index(note)
 	            indexes.append(ind)
 	            #because there are 20 frets (plus 1 open string), there are duplicate notes in the string
 	            if ind <= 8:
@@ -58,6 +64,7 @@ class FretboardPlotter:
 	        # list notes in order of appearance on the fretboard
 	        indexes.sort()
 	        notes_strings[key] = indexes
+	    print(notes_strings)
 	    return notes_strings
 
 	#index 0 = right handed plot, index 1 = left handed plot
