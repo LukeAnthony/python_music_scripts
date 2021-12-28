@@ -25,11 +25,16 @@ class FretboardPlotter:
 		"flats": ['C', 'Am', 'F', 'Dm', 'Bb', 'Gm', 'Eb', 'Cm', 'Ab', 'Fm', 'Db', 'Bbm', 'Gb', 'Ebm', 'Cb', 'Abm',]
 	}
 
-	# map of String -> Plottable
-	# 
+	#Map<String,Plottable>
+	#
 	chordsToChordObjectsDictionary = {
+		"maj" : [0, 4, 7],
+		"maj7": [0, 4, 7, 11]
+	}
 
-
+	#Map<String,Plottable>
+	scalesToScaleObjectsDictionary = {
+		"major" : [0, 2, 4, 5, 7, 9, 11]
 	}
 
 	def __init__(self):
@@ -38,8 +43,8 @@ class FretboardPlotter:
 	def get_key_notes(self, key, intervals):
 		containsSharps = '#' in key
 		root = self.whole_notes_sharps.index(key) if containsSharps else self.whole_notes_flats.index(key)
-		octave = self.whole_notes_sharps[root:root+12] if containsSharps else self.whole_notes_flats[root:root+12]
-		return [octave[i] for i in intervals]
+		noteAlphabetStartingWithThatRoot = self.whole_notes_sharps[root:root+12] if containsSharps else self.whole_notes_flats[root:root+12]
+		return [noteAlphabetStartingWithThatRoot[i] for i in intervals]
 
 	def populate_strings(self):
 		strings = {i:0 for i in 'EADG'}
@@ -48,7 +53,7 @@ class FretboardPlotter:
 			# 	[('C', 'C'), ('C#', 'Db'), ('D', 'D'), ('D#', 'Eb'), ('E', 'E'), ('F', 'F'), ('F#', 'Gb'), ('G', 'G'), ('G#', 'Ab').....
 			sharpsAndFlats = list(zip(self.whole_notes_sharps, self.whole_notes_flats))
 			#start = index of the first tuple containing E|A|D|G in sharpsAndFlats
-			start = [x[0] for x in sharpsAndFlats].index(i) 
+			start = [x[0] for x in sharpsAndFlats].index(i)
 			strings[i] = sharpsAndFlats[start:start+21]
 		self.strings = strings
 		print()
@@ -58,13 +63,11 @@ class FretboardPlotter:
 	def find_notes(self, scale):
 	    notes_strings = {i:0 for i in "EADG"}
 	    # for every string 
-	    for key in self.strings.keys():
+	    for string in self.strings.keys():
 	        indexes = []
-	        tuplesOfStringNotes = self.strings[key]
-	        print("Tuples of string notes for string " + str(key) + " " + str(tuplesOfStringNotes))
-	        print("Scale = " + str(scale))
+	        tuplesOfStringNotes = self.strings[string]
+	        #iterating through the notes of the scale and saving the indexes of the string notes that match them
 	        for note in scale:
-	            # Diego: "append index where note of the scale is found in"
 	            ind = -1
 	            #tuplesOfStringNotes = self.strings[key]
 	            for index, tup in enumerate(tuplesOfStringNotes):
@@ -73,16 +76,11 @@ class FretboardPlotter:
 	            	if note in tup:
 	            		#print("Note matched " + str(note))
 	            		ind = index
-	            		print("Index of matched note " + str(ind))
 	            		#ind = self.strings[key].index(note)
 	            		indexes.append(ind)
-	            #because there are 20 frets (plus 1 open string), there are duplicate notes in the string
-	            #if ind <= 8:
-	                #indexes.append(ind+12)
 	        # list notes in order of appearance on the fretboard
 	        indexes.sort()
-	        print("Final list of indexes for string " + str(key) + " = " + str(indexes))
-	        notes_strings[key] = indexes
+	        notes_strings[string] = indexes
 	    print(notes_strings)
 	    return notes_strings
 
@@ -164,9 +162,17 @@ class Plottable:
 	
 	def __init__(self, notes):
 		self.notes = notes
+		self.root = ""
+
 	#notes should be a list of integers corresponding to the indexes of the notes within a key that should be plotted
 	def get_notes(self) -> list[int]:
 		return self.notes
+
+	def get_root(self) -> str:
+		return self.root
+
+	def set_root(self, root):
+		self.root = root
 
 
 """
@@ -181,13 +187,18 @@ class Plottable:
 						TODO handle inversions --> would merely highlight the lowest note on the diagram
 					"Would you like to plot another chord?"
 						If yes:
-							** redo 
+							** redo **
 				If individual scale:
 					"Which scale would you like to ploat ***same as chord, options should be displayed that come from a list***"
 					"What should the tonic of the scale be?" ***expect a valid note as input***"
 				*** separating scales and chords to make it more readable ***
 		Begin plotting 
 			If scale
+
+				plot in same way as normal --> maybe pass object in instead of the array of intervals???
+			If chord
+				plot same way as normal --> pass plottable object in instead of array of intervals
+
 
 """
 
@@ -202,11 +213,25 @@ class Plottable:
 # fretboardPlotter.plot('D', [0, 2, 4, 5, 7, 9, 11], "D Major Scale")
 
 
-chordOrScale = input("Would you like to plot a chord(s) or a scale? Type 'C' for chord, 'S' for scale")
-if chordOrScale.lower() != 'c' or chordOrScale.loweer() != 's':
+chordOrScale = input("Would you like to plot a chord(s) or a scale? Type 'C' for chord, 'S' for scale ")
+if chordOrScale.lower() != 'c' and chordOrScale.lower() != 's':
 	raise ValueError("Must enter 'C' or 'S'")
 if chordOrScale.lower() == 'c':
-	pass
+	listOfPlottablees = []
+	while(True):
+		chordChoice = input("What chord would you like to plot? Choices are: " + str(FretboardPlotter.chordsToChordObjectsDictionary.keys()) + " ")
+		if chordChoice not in FretboardPlotter.chordsToChordObjectsDictionary.keys():
+			raise ValueError("Must enter a valid chord name")
+		rootChoice = input("What should the root of that chord be? ")
+		if rootChoice not in FretboardPlotter.whole_notes_flats and rootChoice not in FretboardPlotter.whole_notes_sharps:
+			raise ValueError("Must enter valid note")
+		# at this point get a plottable object 
+		# add to listOfPlottables
+		enterAnotherChord = input("Would you like to plot another chord? Type 'Y' for yes, 'N' for no ")
+		if enterAnotherChord.lower() == 'n':
+			break
 if chordOrScale.lower() == 's':
-	pass
+	scaleChoice = input("What scale would you likee to plot? Choices are: " + str(FretboardPlotter.scalesToScaleObjectsDictionary.keys()) + " ")
+	if scaleChoice not in FretboardPlotter.scalesToScaleObjectsDictionary.keys():
+		raise ValueError("Must enter a valid scale name")
 
