@@ -1,6 +1,10 @@
 # The below code was heavily influenced by and, in a few cases (especially the matlab plotting), directly copied from https://colab.research.google.com/github/diegopenilla/PythonGuitar/blob/master/How_to_learn_guitar_with_Python.ipynb#scrollTo=QqZpI0Pl9rw5
 # 	and https://betterprogramming.pub/how-to-learn-guitar-with-python-978a1896a47. 
 #	Thank you to Diego Penilla for making this a lot easier for me
+
+# TODO add octaves to notes (E1, C2, etc...)
+# TODO figure out how to make root of each chord larger & gold on plot
+
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
@@ -21,17 +25,12 @@ class FretboardPlotter:
 		"flats": ['C', 'Am', 'F', 'Dm', 'Bb', 'Gm', 'Eb', 'Cm', 'Ab', 'Fm', 'Db', 'Bbm', 'Gb', 'Ebm', 'Cb', 'Abm',]
 	}
 
-	# Enums for fretboard
-	MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11]
-	MINOR_SCALE = [0, 2, 3, 5, 7, 8, 10]
+	# map of String -> Plottable
+	# 
+	chordsToChordObjectsDictionary = {
 
-	# TODO need to support chords
-	MAJOR_TRIAD = [0, 4, 7]
-	MAJOR_SEVENTH = [0, 4, 7, 11]
-	
-	# have to support minor scales
-	MINOR_TRIAD = [0, 3, 7]
-	MINOR_SEVENTH = [0, 3, 7 ]
+
+	}
 
 	def __init__(self):
 		self.populate_strings()
@@ -159,62 +158,38 @@ class FretboardPlotter:
 			graph.set_yticks(np.arange(1,5), ['E', 'A', 'D', 'G'])
 		plt.show()
 
+# TODO need to think about reworking this, passing in all of the notes doesn't make sense
 #ex) Base class ex: Chromatic Scale, Augmented Chord
 class Plottable:
-	#notes should be a list of integers corresponding to the indexes of the notes within a key that should be plotted
+	
 	def __init__(self, notes):
 		self.notes = notes
-
+	#notes should be a list of integers corresponding to the indexes of the notes within a key that should be plotted
 	def get_notes(self) -> list[int]:
 		return self.notes
 
-# TODO figure out how to make root of each chord larger & gold on plot
-# Has option to plot entire scale OR a given chord progression  
-def MajorOrMinorKey(Plottable):
 
-	""" 
-		Need a map of chord numbers to chord integer positions tuple: left = triad, right = seventh
-		ex)				    C  D  E  F  G  A  B
-			 MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11]
-			 			    0  1  2  3  4  5  6
-		Using integers instead of roman numberals to make shifting between minor & major progressions easy
-	"""
-	chordNumbersToChordNotePositions = {
-		#Cmaj7 C-E-G		 C-E-G-B
-		1: ( [0, 2, 4], [0, 2, 4, 6] ),
-		#Dm7  D-F-A      D-F-A-C		
-		2: ( [1, 3, 5], [1, 3, 5, 0] ),
-		#Em7  E-G-B      E-G-B-D
-		3: ( [2, 4, 6], [2, 4, 6, 1] ),
-		#Fmaj7 F-A-C     F-A-C-E
-		4: ( [3, 5, 0], [3, 5, 0, 2] ),
-		#G7   G-B-D      G-B-D-F
-		5: ( [4, 6, 1], [4, 6, 1, 3] ),
-		#Am7  A-C-E      A-C-E-G
-		6: ( [5, 0, 2], [5, 0, 2, 4] ),
-		#Bm7b5 B-D-F     B-D-F-A
-		7: ( [6, 1, 3], [6, 1, 3, 5] )
-	}
+"""
+	Program goal:
+		To plot notes on the fretboard that correspond to certain chords, scales, or progressions within a scale
+	Program algorithm:
+		Get user input
+			"Would you like to plot": A chord(s) or a scale?
+				If chord(s):
+					"Which chord type would you like to plot? ***display options which should come from some kind of data structure...maybe the keys of a map?***"
+					"What should the root of this chord be ***expect a valid note as input***"
+						TODO handle inversions --> would merely highlight the lowest note on the diagram
+					"Would you like to plot another chord?"
+						If yes:
+							** redo 
+				If individual scale:
+					"Which scale would you like to ploat ***same as chord, options should be displayed that come from a list***"
+					"What should the tonic of the scale be?" ***expect a valid note as input***"
+				*** separating scales and chords to make it more readable ***
+		Begin plotting 
+			If scale
 
-	def __init__(self, notes, majorOrMinor, chordProgressionAndTriadsOrSeventhsTuple=None):
-		Plottable.__init__(self, notes)
-		#True = major, false = minor
-		self.majorOrMinor = majorOrMinor == "M"
-		self.chordProgressionAndTriadsOrSeventhsTuple = chordProgressionAndTriadsOrSeventhsTuple
-
-	# have to return only the 
-	def get_notes(self) -> list[int]:
-		chordProgression = self.chordProgressionAndTriadsOrSeventhsTuple[0].split('-')
-		notesToInclude = []
-		for chord in chordProgression:
-			pass
-		triadsOrSevenths = chordProgressionAndTriadsOrSeventhsTuple[1]
-			
-		if (triadsOrSevenths != "T") or (triadsOrSevenths != "S"):
-			raise ValueError("Triads or Sevenths must be indicated by 'T' or 'S' ")
-		return self.notes
-
-fretboardPlotter = FretboardPlotter()
+"""
 
 #plot needs to have the following arguments
 	#root note (char), which will indicate the root of the key
@@ -223,4 +198,15 @@ fretboardPlotter = FretboardPlotter()
 		# will append 'm' to root note if minor. will then look up appended key name in accidentalsToKeysMap. if in sharps, use whole_notes_sharps to get notes. if not, use whole_notes_flates to get notes
 	#a class of type Plottable, which indicates what notes to plot
 		#will need to use 
-fretboardPlotter.plot('D', fretboardPlotter.MAJOR_SCALE, "D Major Scale")
+# fretboardPlotter = FretboardPlotter()
+# fretboardPlotter.plot('D', [0, 2, 4, 5, 7, 9, 11], "D Major Scale")
+
+
+chordOrScale = input("Would you like to plot a chord(s) or a scale? Type 'C' for chord, 'S' for scale")
+if chordOrScale.lower() != 'c' or chordOrScale.loweer() != 's':
+	raise ValueError("Must enter 'C' or 'S'")
+if chordOrScale.lower() == 'c':
+	pass
+if chordOrScale.lower() == 's':
+	pass
+
