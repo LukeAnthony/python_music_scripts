@@ -25,68 +25,63 @@ class FretboardPlotter:
 		"flats": ['C', 'Am', 'F', 'Dm', 'Bb', 'Gm', 'Eb', 'Cm', 'Ab', 'Fm', 'Db', 'Bbm', 'Gb', 'Ebm', 'Cb', 'Abm',]
 	}
 
-	#Map<String,Plottable>
-	#
-	chordsToChordObjectsDictionary = {
+	#Map<String,List[Int]>
+	chordsToChordIndexesDictionary = {
 		"maj" : [0, 4, 7],
 		"maj7": [0, 4, 7, 11]
 	}
 
-	#Map<String,Plottable>
-	scalesToScaleObjectsDictionary = {
-		"major" : [0, 2, 4, 5, 7, 9, 11]
+	#Map<String,List[Int]>
+	scalesToScaleIndexesDictionary = {
+		"major" : [0, 2, 4, 5, 7, 9, 11],
+		"minor" : [0, 2, 3, 5, 7, 8, 10]
 	}
 
-	def __init__(self):
-		self.populate_strings()
-
-	def get_key_notes(self, key, intervals):
-		containsSharps = '#' in key
-		root = self.whole_notes_sharps.index(key) if containsSharps else self.whole_notes_flats.index(key)
-		noteAlphabetStartingWithThatRoot = self.whole_notes_sharps[root:root+12] if containsSharps else self.whole_notes_flats[root:root+12]
+	@staticmethod
+	def get_plottable_notes(plottable):
+		root = plottable.get_root()
+		intervals = plottable.get_intervals()
+		containsSharps = '#' in root
+		rootIndex = FretboardPlotter.whole_notes_sharps.index(root) if containsSharps else FretboardPlotter.whole_notes_flats.index(root)
+		noteAlphabetStartingWithThatRoot = FretboardPlotter.whole_notes_sharps[rootIndex:rootIndex+12] if containsSharps else FretboardPlotter.whole_notes_flats[rootIndex:rootIndex+12]
 		return [noteAlphabetStartingWithThatRoot[i] for i in intervals]
 
-	def populate_strings(self):
+	def populate_strings():
 		strings = {i:0 for i in 'EADG'}
 		for i in strings.keys():
 			# combines sharps and flats into a list of tuples, with equal accidentals occupying the same index, with sharps in position 0 and flats in pos 1
 			# 	[('C', 'C'), ('C#', 'Db'), ('D', 'D'), ('D#', 'Eb'), ('E', 'E'), ('F', 'F'), ('F#', 'Gb'), ('G', 'G'), ('G#', 'Ab').....
-			sharpsAndFlats = list(zip(self.whole_notes_sharps, self.whole_notes_flats))
+			sharpsAndFlats = list(zip(FretboardPlotter.whole_notes_sharps, FretboardPlotter.whole_notes_flats))
 			#start = index of the first tuple containing E|A|D|G in sharpsAndFlats
 			start = [x[0] for x in sharpsAndFlats].index(i)
 			strings[i] = sharpsAndFlats[start:start+21]
-		self.strings = strings
-		print()
+		FretboardPlotter.strings = strings
 
-	# look at scale value being passed in. if sharp look for sharps, if flat look for flats
+	# look at plottable notes being passed in. if sharp look for sharps, if flat look for flats
 	# sharps will always be first element in tuple, flats will always be second element in tuple
-	def find_notes(self, scale):
+	def find_notes(plottable_notes, plottable):
 	    notes_strings = {i:0 for i in "EADG"}
 	    # for every string 
-	    for string in self.strings.keys():
+	    for string in FretboardPlotter.strings.keys():
 	        indexes = []
-	        tuplesOfStringNotes = self.strings[string]
-	        #iterating through the notes of the scale and saving the indexes of the string notes that match them
-	        for note in scale:
+	        tuplesOfStringNotes = FretboardPlotter.strings[string]
+	        #iterating through the notes of the plottable and saving the indexes of the string notes that match them
+	        for note in plottable_notes:
 	            ind = -1
 	            #tuplesOfStringNotes = self.strings[key]
 	            for index, tup in enumerate(tuplesOfStringNotes):
-	            	#print("Tuple list " + str(tup))
-	            	#print("Note " + str(note))
 	            	if note in tup:
-	            		#print("Note matched " + str(note))
 	            		ind = index
-	            		#ind = self.strings[key].index(note)
 	            		indexes.append(ind)
 	        # list notes in order of appearance on the fretboard
 	        indexes.sort()
 	        notes_strings[string] = indexes
-	    print(notes_strings)
 	    return notes_strings
 
+	@staticmethod
 	#index 0 = right handed plot, index 1 = left handed plot
-	def plot(self, key, intervals, graphTitle, night=True):
-		scale = self.get_key_notes(key, intervals)
+	def plot(plottables, graphTitle, night=True):
+		FretboardPlotter.populate_strings()
 		#creating two plots, top right handed, bottom left handed
 		fig, ax = plt.subplots(2, figsize=(21,4))
 		background = ['white', 'black']
@@ -114,13 +109,30 @@ class FretboardPlotter:
 					graph.axvline(x=i if index == 1 else i-.2, color='gold', linewidth=6.5)
 				else:
 					graph.axvline(x=i, color=background[night-1], linewidth=0.5)
-		to_plot = self.find_notes(scale)
-		
+
+
+		to_plot  = {}
+		# C, G, Bb, C#
+		plottableRoots = []
+		for plottable in plottables:
+			plottableRoots.append(plottable.get_root())
+			#ex) notes = ['C', 'E', 'G']
+			notes = FretboardPlotter.get_plottable_notes(plottable)
+			#ex) plottableNootes = {'E': [0, 3, 8, 12, 15, 20], 'A': [3, 7, 10, 15, 19], 'D': [2, 5, 10, 14, 17], 'G': [0, 5, 9, 12, 17]
+			plottableNotes = FretboardPlotter.find_notes(notes, plottable)
+			# need to combine the dictionary lists together for multiple plottables
+			if len(to_plot) == 0:
+				to_plot = plottableNotes
+			else:
+				for key in to_plot.keys():
+					to_plot[key] += plottableNotes[key]
+
 		#find_notes returns a map of strings with the indexes of the notes that are in the given scale
 			#ex: to_plot(C major scale) = {'E': [19, 17, 15, 13, 12, 10, 8, 7, 5, 3, 1, 0], 'A': [19, 17, 15, 14, 12, 10, 8, 7, 5, 3, 2, 0]...
 			# below for loop iterates through EADG keys of the map
 		for y_val, stringName in zip([1,2,3,4], 'EADG'):
 			#  looks up the values corresponding to EADG keys of find_notes map aka the indexes of the notes that were in the given scale
+			# ex) iterating through to_plot[E] = [19, 17, 15, 13, 12, 10, 8, 7, 5, 3, 1, 0]
 			for i in to_plot[stringName]:
 				font = 12
 				color = 'w'
@@ -130,12 +142,10 @@ class FretboardPlotter:
 				xRighty = (i + 0.55) if i == 0 else (i + 0.55)
 				# strings is a map of each string and their notes. 
 				# gets the list of notes for a given string and looks up the note at the index
-				noteTuple = self.strings[stringName][i]
-				print("Note tuple = " + str(noteTuple))
-				note = noteTuple[0] if key in self.accidentalsToKeysMap["sharps"] else noteTuple[1]
-				print("Note  = " + str(note))
+				noteTuple = FretboardPlotter.strings[stringName][i]
+				note = noteTuple[1] if any(pr in FretboardPlotter.accidentalsToKeysMap["flats"] for pr in plottableRoots) else noteTuple[0]
 				# make the root slightly larger and yellow
-				if note == scale[0]:
+				if(note in plottableRoots):
 					font = 15
 					color = 'yellow'
 					circleSize = 0.3
@@ -156,24 +166,18 @@ class FretboardPlotter:
 			graph.set_yticks(np.arange(1,5), ['E', 'A', 'D', 'G'])
 		plt.show()
 
-# TODO need to think about reworking this, passing in all of the notes doesn't make sense
-#ex) Base class ex: Chromatic Scale, Augmented Chord
 class Plottable:
 	
-	def __init__(self, notes):
-		self.notes = notes
-		self.root = ""
+	def __init__(self, root, intervals):
+		self.root = root
+		self.intervals = intervals
 
 	#notes should be a list of integers corresponding to the indexes of the notes within a key that should be plotted
-	def get_notes(self) -> list[int]:
-		return self.notes
+	def get_intervals(self) -> list[int]:
+		return self.intervals
 
 	def get_root(self) -> str:
 		return self.root
-
-	def set_root(self, root):
-		self.root = root
-
 
 """
 	Program goal:
@@ -212,26 +216,42 @@ class Plottable:
 # fretboardPlotter = FretboardPlotter()
 # fretboardPlotter.plot('D', [0, 2, 4, 5, 7, 9, 11], "D Major Scale")
 
+listOfPlottables = []
+graphTitle = ""
+
+testList = [ Plottable("C", [0,2,4]), Plottable("Bb", [0, 2, 5]) ]
+note = "D"
+# print( note == x.gettestList[0].get_root())
 
 chordOrScale = input("Would you like to plot a chord(s) or a scale? Type 'C' for chord, 'S' for scale ")
 if chordOrScale.lower() != 'c' and chordOrScale.lower() != 's':
 	raise ValueError("Must enter 'C' or 'S'")
+#if chord
 if chordOrScale.lower() == 'c':
-	listOfPlottablees = []
 	while(True):
-		chordChoice = input("What chord would you like to plot? Choices are: " + str(FretboardPlotter.chordsToChordObjectsDictionary.keys()) + " ")
-		if chordChoice not in FretboardPlotter.chordsToChordObjectsDictionary.keys():
-			raise ValueError("Must enter a valid chord name")
-		rootChoice = input("What should the root of that chord be? ")
+		rootChoice = input("What should the root of the chord be? ")
 		if rootChoice not in FretboardPlotter.whole_notes_flats and rootChoice not in FretboardPlotter.whole_notes_sharps:
 			raise ValueError("Must enter valid note")
+		chordChoice = input("What chord would you like to plot? Choices are: " + str(FretboardPlotter.chordsToChordIndexesDictionary.keys()) + " ")
+		if chordChoice not in FretboardPlotter.chordsToChordIndexesDictionary.keys():
+			raise ValueError("Must enter a valid chord name")
 		# at this point get a plottable object 
 		# add to listOfPlottables
+		listOfPlottables.append(Plottable(rootChoice, FretboardPlotter.chordsToChordIndexesDictionary[chordChoice] ))
 		enterAnotherChord = input("Would you like to plot another chord? Type 'Y' for yes, 'N' for no ")
 		if enterAnotherChord.lower() == 'n':
 			break
+	graphTitle = input("What should the title of the graph be?")
+	print(len(listOfPlottables))
+#if scale
 if chordOrScale.lower() == 's':
-	scaleChoice = input("What scale would you likee to plot? Choices are: " + str(FretboardPlotter.scalesToScaleObjectsDictionary.keys()) + " ")
-	if scaleChoice not in FretboardPlotter.scalesToScaleObjectsDictionary.keys():
+	rootChoice = input("What should the root of the scale be? ")
+	if rootChoice not in FretboardPlotter.whole_notes_flats and rootChoice not in FretboardPlotter.whole_notes_sharps:
+		raise ValueError("Must enter valid note")
+	scaleChoice = input("What scale would you likee to plot? Choices are: " + str(FretboardPlotter.scalesToScaleIndexesDictionary.keys()) + " ")
+	if scaleChoice not in FretboardPlotter.scalesToScaleIndexesDictionary.keys():
 		raise ValueError("Must enter a valid scale name")
+	graphTitle = input("What should the title of the graph be? ")
+	listOfPlottables.append(Plottable(rootChoice, FretboardPlotter.scalesToScaleIndexesDictionary[scaleChoice] ))
 
+FretboardPlotter.plot(listOfPlottables, graphTitle)
