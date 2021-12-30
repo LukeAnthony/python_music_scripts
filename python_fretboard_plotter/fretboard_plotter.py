@@ -3,12 +3,11 @@
 #	Thank you to Diego Penilla for making this a lot easier for me
 
 # TODO add octaves to notes (E1, C2, etc...)
-# TODO figure out how to make root of each chord larger & gold on plot
-
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
 
+# contains all logic to plot Plottable objects
 class FretboardPlotter:
 	# multiplying lists by 3 bc of populate strings method. looks 21 notes past the starting point of the strings, 
 	# 	so need to make sure there's enough notes to choose from
@@ -16,25 +15,99 @@ class FretboardPlotter:
 	whole_notes_sharps = ['C' , 'C#', 'D', 'D#', 'E', 'F', 'F#' , 'G', 'G#', 'A', 'A#', 'B']*3
 	strings = {}
 
-	"""
-		Need a map of keys that take sharps and keys that take flats
-		Then need to look up sharps.values() in plot method to see if it's in there. if so, plot sharps. If not, plot flats
-	"""
 	accidentalsToKeysMap = {
 		"sharps" : ['C', 'Am', 'G', 'Em', 'D', 'Bm', 'A', 'F#m', 'E', 'C#m', 'B', 'G#m', 'F#', 'D#m', 'C#', 'A#m',],
 		"flats": ['C', 'Am', 'F', 'Dm', 'Bb', 'Gm', 'Eb', 'Cm', 'Ab', 'Fm', 'Db', 'Bbm', 'Gb', 'Ebm', 'Cb', 'Abm',]
 	}
 
-	#Map<String,List[Int]>
+	 """
+		* Triads
+		   * diminished_triad
+		 * Sixths
+		   * minor_sixth
+		   * major_sixth
+		 * Sevenths
+		   * dominant_seventh
+		   * minor_major_seventh
+		   * minor_seventh_flat_five
+		   * diminished_seventh
+		 * Ninths
+		   * minor_ninth
+		   * major_ninth
+		   * dominant_ninth
+		 * Elevenths
+		   * minor_eleventh
+		   * eleventh
+		 * Thirteenths
+		   * minor_thirteenth
+		   * major_thirteenth
+		   * dominant_thirteenth
+		 * Augmented chords
+		   * augmented_triad
+		   * augmented_major_seventh
+		   * augmented_minor_seventh
+		 * Suspended chords
+		   * suspended_second_triad
+		   * suspended_fourth_triad
+		   * suspended_seventh
+		   * suspended_fourth_ninth
+		   * suspended_ninth
+		 * Altered chords
+		   * dominant_flat_ninth
+		   * dominant_sharp_ninth
+		   * dominant_flat_five
+		   * sixth_ninth
+		   * hendrix_chord
+	  """
 	chordsToChordIndexesDictionary = {
+	# reference:
+		# Indexes  	 	   0     1     2    3     4    5    6      7    8     9    10    11
+						#['C' , 'Db', 'D', 'Eb', 'E', 'F', 'Gb' , 'G', 'Ab', 'A', 'Bb', 'B']
+		# maj scale notes  1     	   2          3    4           5          6          7
+
+		#       [C  E  G]
 		"maj" : [0, 4, 7],
-		"maj7": [0, 4, 7, 11]
+		#       [C  E  G  B]
+		"maj7": [0, 4, 7, 11],
+		#
+		"m": [],
+		"m7": []
 	}
 
-	#Map<String,List[Int]>
 	scalesToScaleIndexesDictionary = {
+		# reference:
+		# Indexes: 	 	  	   0     1     2    3     4    5    6      7    8     9    10    11
+							#['C' , 'Db', 'D', 'Eb', 'E', 'F', 'Gb' , 'G', 'Ab', 'A', 'Bb', 'B']
+		# maj scale notes: 	   1     	   2          3    4           5          6          7
+
+		#		   C  D  E  F  G  A  B
 		"major" : [0, 2, 4, 5, 7, 9, 11],
-		"minor" : [0, 2, 3, 5, 7, 8, 10]
+		#          C  D  Eb F  G  Ab  Bb
+		"minor" : [0, 2, 3, 5, 7, 8, 10],
+		#          		   C  D  Eb F  G  Ab  B
+		"harmonic minor": [0, 2, 3, 5, 7, 8, 11],
+		#         	 	  C  D  Eb F  G  A  B
+		"melodic minor": [0, 2, 3, 5, 7, 9, 11],
+		#          C  D  Eb F  G  A  Bb
+		"dorian": [0, 2, 3, 5, 7, 9, 10],
+		#		   	 C  Db Eb F  G  Ab Bb 
+		"phrygian": [0, 1, 3, 5, 7, 8, 10],
+		#		   C  D  E  F#  G  A  B
+		"lydian": [0, 2, 4, 6, 7, 9, 11],
+		#			   C  D  E  F  G  A  Bb
+		"mixolydian": [0, 2, 4, 5, 7, 9, 10],
+		#           C  Db  Eb  F  Gb  Ab  Bb
+		"locrian": [0, 1, 3, 5, 6, 8, 10],
+		#			  C   Db D  Eb E  F  Gb G  Ab A  Bb  B 
+		"chromatiic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+		#					 C  D  E  G  A
+		"major pentatonic": [0, 2, 4, 7, 9],
+		#					 C  Eb F  G  Bb
+		"minor pentatonic": [0, 3, 5, 7, 10],
+		#				C  D  Eb E  G  A
+		"major blues": [0, 2, 3, 4, 7, 9],
+		#				C  Eb F  Gb G  Bb
+		"minor blues": [0, 3, 5, 6, 7, 10]
 	}
 
 	@staticmethod
@@ -43,7 +116,7 @@ class FretboardPlotter:
 		intervals = plottable.get_intervals()
 		containsSharps = '#' in root
 		rootIndex = FretboardPlotter.whole_notes_sharps.index(root) if containsSharps else FretboardPlotter.whole_notes_flats.index(root)
-		noteAlphabetStartingWithThatRoot = FretboardPlotter.whole_notes_sharps[rootIndex:rootIndex+12] if containsSharps else FretboardPlotter.whole_notes_flats[rootIndex:rootIndex+12]
+		noteAlphabetStartingWithThatRoot = FretboardPlotter.whole_notes_sharps[rootIndex:rootIndex+21] if containsSharps else FretboardPlotter.whole_notes_flats[rootIndex:rootIndex+21]
 		return [noteAlphabetStartingWithThatRoot[i] for i in intervals]
 
 	def populate_strings():
@@ -73,7 +146,7 @@ class FretboardPlotter:
 	            	if note in tup:
 	            		ind = index
 	            		indexes.append(ind)
-	        # list notes in order of appearance on the fretboard
+	        # list notes in order of appearance on the fretboard to make it easier to debug
 	        indexes.sort()
 	        notes_strings[string] = indexes
 	    return notes_strings
@@ -110,9 +183,7 @@ class FretboardPlotter:
 				else:
 					graph.axvline(x=i, color=background[night-1], linewidth=0.5)
 
-
 		to_plot  = {}
-		# C, G, Bb, C#
 		plottableRoots = []
 		for plottable in plottables:
 			plottableRoots.append(plottable.get_root())
@@ -166,6 +237,8 @@ class FretboardPlotter:
 			graph.set_yticks(np.arange(1,5), ['E', 'A', 'D', 'G'])
 		plt.show()
 
+# Anything that will be plotted on the fretboard
+# For now, only scales and chords are supported
 class Plottable:
 	
 	def __init__(self, root, intervals):
@@ -179,49 +252,12 @@ class Plottable:
 	def get_root(self) -> str:
 		return self.root
 
-"""
-	Program goal:
-		To plot notes on the fretboard that correspond to certain chords, scales, or progressions within a scale
-	Program algorithm:
-		Get user input
-			"Would you like to plot": A chord(s) or a scale?
-				If chord(s):
-					"Which chord type would you like to plot? ***display options which should come from some kind of data structure...maybe the keys of a map?***"
-					"What should the root of this chord be ***expect a valid note as input***"
-						TODO handle inversions --> would merely highlight the lowest note on the diagram
-					"Would you like to plot another chord?"
-						If yes:
-							** redo **
-				If individual scale:
-					"Which scale would you like to ploat ***same as chord, options should be displayed that come from a list***"
-					"What should the tonic of the scale be?" ***expect a valid note as input***"
-				*** separating scales and chords to make it more readable ***
-		Begin plotting 
-			If scale
-
-				plot in same way as normal --> maybe pass object in instead of the array of intervals???
-			If chord
-				plot same way as normal --> pass plottable object in instead of array of intervals
-
-
-"""
-
-#plot needs to have the following arguments
-	#root note (char), which will indicate the root of the key
-	#majorOrMinor (enum), which will indicate whether key is major or minor
-		#these first two arguments serve the purpose of figuring out whether to plot sharps or flats. they do not indicate what notes within the key to plot
-		# will append 'm' to root note if minor. will then look up appended key name in accidentalsToKeysMap. if in sharps, use whole_notes_sharps to get notes. if not, use whole_notes_flates to get notes
-	#a class of type Plottable, which indicates what notes to plot
-		#will need to use 
-# fretboardPlotter = FretboardPlotter()
-# fretboardPlotter.plot('D', [0, 2, 4, 5, 7, 9, 11], "D Major Scale")
+# END classes
+# ********************************************************************************************************************************************************
+# Logic below
 
 listOfPlottables = []
 graphTitle = ""
-
-testList = [ Plottable("C", [0,2,4]), Plottable("Bb", [0, 2, 5]) ]
-note = "D"
-# print( note == x.gettestList[0].get_root())
 
 chordOrScale = input("Would you like to plot a chord(s) or a scale? Type 'C' for chord, 'S' for scale ")
 if chordOrScale.lower() != 'c' and chordOrScale.lower() != 's':
@@ -235,8 +271,6 @@ if chordOrScale.lower() == 'c':
 		chordChoice = input("What chord would you like to plot? Choices are: " + str(FretboardPlotter.chordsToChordIndexesDictionary.keys()) + " ")
 		if chordChoice not in FretboardPlotter.chordsToChordIndexesDictionary.keys():
 			raise ValueError("Must enter a valid chord name")
-		# at this point get a plottable object 
-		# add to listOfPlottables
 		listOfPlottables.append(Plottable(rootChoice, FretboardPlotter.chordsToChordIndexesDictionary[chordChoice] ))
 		enterAnotherChord = input("Would you like to plot another chord? Type 'Y' for yes, 'N' for no ")
 		if enterAnotherChord.lower() == 'n':
