@@ -3,6 +3,7 @@
 #	Thank you to Diego Penilla for making this a lot easier for me
 
 # TODO add octaves to notes (E1, C2, etc...)
+# TODO make sure ninth chords & any other chord with notes in the next octave are plotted correctly
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
@@ -21,37 +22,6 @@ class FretboardPlotter:
 	}
 
 	 """
-		* Triads
-		   * diminished_triad
-		 * Sixths
-		   * minor_sixth
-		   * major_sixth
-		 * Sevenths
-		   * dominant_seventh
-		   * minor_major_seventh
-		   * minor_seventh_flat_five
-		   * diminished_seventh
-		 * Ninths
-		   * minor_ninth
-		   * major_ninth
-		   * dominant_ninth
-		 * Elevenths
-		   * minor_eleventh
-		   * eleventh
-		 * Thirteenths
-		   * minor_thirteenth
-		   * major_thirteenth
-		   * dominant_thirteenth
-		 * Augmented chords
-		   * augmented_triad
-		   * augmented_major_seventh
-		   * augmented_minor_seventh
-		 * Suspended chords
-		   * suspended_second_triad
-		   * suspended_fourth_triad
-		   * suspended_seventh
-		   * suspended_fourth_ninth
-		   * suspended_ninth
 		 * Altered chords
 		   * dominant_flat_ninth
 		   * dominant_sharp_ninth
@@ -59,19 +29,91 @@ class FretboardPlotter:
 		   * sixth_ninth
 		   * hendrix_chord
 	  """
+	# can refer to chords here: https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py
 	chordsToChordIndexesDictionary = {
 	# reference:
 		# Indexes  	 	   0     1     2    3     4    5    6      7    8     9    10    11
 						#['C' , 'Db', 'D', 'Eb', 'E', 'F', 'Gb' , 'G', 'Ab', 'A', 'Bb', 'B']
 		# maj scale notes  1     	   2          3    4           5          6          7
 
+		# major triad
 		#       [C  E  G]
 		"maj" : [0, 4, 7],
+		# major 7th
 		#       [C  E  G  B]
 		"maj7": [0, 4, 7, 11],
-		#
-		"m": [],
-		"m7": []
+		# minor triad
+		#	  C  Eb G
+		"m": [0, 3, 7],
+		# minor 7th
+		#     C  Eb  G  Bb
+		"m7": [0, 3, 7, 10],
+		# minor 7th flat 5 (aka half-diminished)
+		#     C  Eb  Gb  Bb
+		"m7b5": [0, 3, 6, 10],
+		# minor-major seventh
+		# 		C  Eb G  B
+		"m/M7": [0, 3, 7, 11]
+		# diminished triad
+		#	  C  Eb  Gb
+		"dim": [0, 3,  6],
+		# minor sixth
+		# 	   C  Eb G  A
+		"m6": [0, 3, 7, 9],
+		# major sixth
+		# 	   C  E  G  A
+		"M6": [0, 4, 7, 9],
+		# dominant 7
+		# 	  C  E  G  Bb
+		"7": [0, 4, 7, 10],
+		# diminished seventh
+		#   	 C  Eb Gb Bbb
+		"dim7": [0, 3, 6, 9],
+		# major 9th
+		# 		 C  E  G  B   D
+		"maj9": [0, 4, 7, 11, 2],
+		# minor 9th
+		# 		 C  Eb G  Bb  D
+		"m9":   [0, 3, 7, 10, 2],
+		# dominant 9th
+		# 		C  E  G  Bb  D
+		"9":   [0, 4, 7, 10, 2],
+		# 11th 
+		# 	   C  E  G  Bb  D  F
+		"11": [0, 4, 7, 10, 2, 5],
+		# minor 11th
+		# 		  C  Eb G  Bb  D  F
+		"m11":   [0, 3, 7, 10, 2, 5],
+		# 13th (dominant 13th)
+		#        C  E  G  Bb  D  F  A
+		"13":   [0, 4, 7, 10, 2, 5, 9],
+		# minor 13th
+		# 		  C  Eb G  Bb  D  F  A
+		"m13":   [0, 3, 7, 10, 2, 5, 9],
+		# major 13th
+		# 		  C  E  G  B   D  A
+		"maj13": [0, 4, 7, 11, 2, 9],
+		# augmented triad
+		# 		C  E  G#
+		"aug": [0, 4, 8],
+		# augmented seventh/augmented minor seventh
+		# 		 C  E  G#  Bb
+		"m7+": [0, 4, 8, 10],
+		# augmented major seventh
+		# 		 C   E  G#  B
+		"M7+": [0, 4, 8, 11],
+		# suspended second triad
+		#		 C  D  G
+		"sus2": [0, 2, 7],
+		# suspended triad/suspended fourth triad
+		#		C  F  G
+		"sus": [0, 5, 7],
+		# suspended seventh
+		# 		  C  F  G  Bb
+    	"7sus4": [0, 5, 7, 11],
+    	# suspended flat ninth/suspended fourth flat ninth
+    	#     C  F  G  Db
+    	"susb9": [0, 5, 7, 1]
 	}
 
 	scalesToScaleIndexesDictionary = {
@@ -116,7 +158,7 @@ class FretboardPlotter:
 		intervals = plottable.get_intervals()
 		containsSharps = '#' in root
 		rootIndex = FretboardPlotter.whole_notes_sharps.index(root) if containsSharps else FretboardPlotter.whole_notes_flats.index(root)
-		noteAlphabetStartingWithThatRoot = FretboardPlotter.whole_notes_sharps[rootIndex:rootIndex+21] if containsSharps else FretboardPlotter.whole_notes_flats[rootIndex:rootIndex+21]
+		noteAlphabetStartingWithThatRoot = FretboardPlotter.whole_notes_sharps[rootIndex:rootIndex+12] if containsSharps else FretboardPlotter.whole_notes_flats[rootIndex:rootIndex+12]
 		return [noteAlphabetStartingWithThatRoot[i] for i in intervals]
 
 	def populate_strings():
