@@ -3,7 +3,7 @@
 #	Thank you to Diego Penilla for making this a lot easier for me
 
 # TODO add octaves to notes (E1, C2, etc...)
-# TODO make sure ninth chords & any other chord with notes in the next octave are plotted correctly
+# TODO color tones of each chord the same if plotting multiple chords??
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
@@ -21,14 +21,6 @@ class FretboardPlotter:
 		"flats": ['C', 'Am', 'F', 'Dm', 'Bb', 'Gm', 'Eb', 'Cm', 'Ab', 'Fm', 'Db', 'Bbm', 'Gb', 'Ebm', 'Cb', 'Abm',]
 	}
 
-	 """
-		 * Altered chords
-		   * dominant_flat_ninth
-		   * dominant_sharp_ninth
-		   * dominant_flat_five
-		   * sixth_ninth
-		   * hendrix_chord
-	  """
 	# can refer to chords here: https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py
 	chordsToChordIndexesDictionary = {
 	# reference:
@@ -53,7 +45,7 @@ class FretboardPlotter:
 		"m7b5": [0, 3, 6, 10],
 		# minor-major seventh
 		# 		C  Eb G  B
-		"m/M7": [0, 3, 7, 11]
+		"m/M7": [0, 3, 7, 11],
 		# diminished triad
 		#	  C  Eb  Gb
 		"dim": [0, 3,  6],
@@ -113,7 +105,22 @@ class FretboardPlotter:
     	"7sus4": [0, 5, 7, 11],
     	# suspended flat ninth/suspended fourth flat ninth
     	#     C  F  G  Db
-    	"susb9": [0, 5, 7, 1]
+    	"susb9": [0, 5, 7, 1],
+    	# dominant flat ninth
+    	#    C  E  G  Bb  Db
+    	"": [0, 4, 7, 10, 1],
+    	# dominant sharp ninth
+    	# 	 C  E  G  Bb  D#
+    	"": [0, 4, 7, 10, 3],
+    	# dominant flat five
+    	#   C   E  Gb  Bb
+    	"": [0, 4, 6, 10],
+    	# sixth_ninth
+    	#    C  E  G  A  D
+    	"": [0, 4, 7, 9, 2],
+    	# hendrix chord (7b12)
+    	#    C  E  G  Bb  Eb
+    	"": [0, 4, 7, 10, 3]
 	}
 
 	scalesToScaleIndexesDictionary = {
@@ -141,7 +148,7 @@ class FretboardPlotter:
 		#           C  Db  Eb  F  Gb  Ab  Bb
 		"locrian": [0, 1, 3, 5, 6, 8, 10],
 		#			  C   Db D  Eb E  F  Gb G  Ab A  Bb  B 
-		"chromatiic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+		"chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
 		#					 C  D  E  G  A
 		"major pentatonic": [0, 2, 4, 7, 9],
 		#					 C  Eb F  G  Bb
