@@ -10,9 +10,10 @@ from mingus.midi import fluidsynth
 import random, sys, math
 
 try:
-	fluidsynth.init(sys.argv[1])
+	# paste path to your own soundfont file below
+	fluidsynth.init("C:/Users/lukeb/Desktop/repos/python_music_scripts/python_ear_trainer/Studio_FG460s_II_Pro_Guitar_Pack.sf2")
 except IndexError:
-	print("Error. Must pass in path to a soundfont file as a cla")
+	print("Error. Couldn't locate soundfont file")
 	exit()
 
 class PythonEarTrainer:
@@ -128,28 +129,31 @@ class PythonEarTrainer:
 		if( not PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) ):
 			raise ValueError("Input wasn't 'N','C', or 'I")
 		
-		noteRange = input("Which notes would you like the program to randomly choose between. Enter them separated by commas (ex: C,Eb,G#,F). Or enter 'all' to shuffle between all notes. Or enter a range of numbers, from 1-12 in the format 'x-y' with C=1 and B=12, to shuffle between those (ex: 1-5 to shuffly between C,C#,D,D#,E) " )
+		noteRange = input("Which notes would you like the program to randomly choose between?\nEnter them separated by commas (ex: C,Eb,G#,F).\nOr enter 'all' to shuffle between all notes.\nOr enter a range of numbers, from 1-12 in the format 'x-y' with C=1 and B=12, to shuffle between those (ex: 1-5 to shuffly between C,C#,D,D#,E) " )
 		if noteRange.lower() == "all":
 			PythonEarTrainer.noteChoices = PythonEarTrainer.defaultNoteList
-		numRange = '-' in noteRange
-		if numRange:
-			noteRangeSplit = noteRange.split('-')
-			if len(noteRangeSplit) != 2:
-				raise ValueError("Incorrectly entered range of numbers. Must be in format 'x-y")
-			else:
-				floor = int(noteRangeSplit[0]) - 1
-				ceiling = int(noteRangeSplit[1])
-				for x in range( floor, ceiling):
-					PythonEarTrainer.noteChoices.append(notes.int_to_note(x))
 		else:
-			noteRangeSplit = noteRange.split(',')
-			for note in noteRangeSplit:
-				if not notes.is_valid_note(note):
-					print("Don't recognzie note: " + note)
+			numRange = '-' in noteRange
+			# if entered x-y (1-6, 2-4)
+			if numRange:
+				noteRangeSplit = noteRange.split('-')
+				if len(noteRangeSplit) != 2:
+					raise ValueError("Incorrectly entered range of numbers. Must be in format 'x-y")
 				else:
-					PythonEarTrainer.noteChoices.append(note)
+					floor = int(noteRangeSplit[0]) - 1
+					ceiling = int(noteRangeSplit[1])
+					for x in range( floor, ceiling):
+						PythonEarTrainer.noteChoices.append(notes.int_to_note(x))
+			# if entered C,D,E...0
+			else:
+				noteRangeSplit = noteRange.split(',')
+				for note in noteRangeSplit:
+					if not notes.is_valid_note(note):
+						print("Don't recognzie note: " + note)
+					else:
+						PythonEarTrainer.noteChoices.append(note)
 
-		octaveString = input("Which octave(s), from 1-6, do you want to the program to randomly place the note/chord/root of the interval in? Type the octaves separated by a comma (ex: 1,2,3). Type 'all' to randomly choose between octaves 1-6 ")
+		octaveString = input("Which octave(s), from 1-6, do you want to the program to randomly place the note/chord/root of the interval in? Type the octaves separated by a comma (ex: 1,2,3).\nType 'all' to randomly choose between octaves 1-6 ")
 		if( octaveString.lower() == "all" ):
 			PythonEarTrainer.octaveChoices = PythonEarTrainer.defaultOctaveList
 		else:
@@ -167,7 +171,7 @@ class PythonEarTrainer:
 
 		if PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) or PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval):
 			if PythonEarTrainer.isInterval( PythonEarTrainer.noteChordOrInterval ):
-				intervalChoices = input("What intervals types would you like a random selection to be made from? Choices are: " + str(list(PythonEarTrainer.intervalTypesDictionary.keys())) + ".\nType the intervals separated by a comma (ex: major second, perfect fifth). To select all interval types, type 'all'.\nNOTE: Choosing to include inversions later will add an additional interval type for every interval chosen here ")
+				intervalChoices = input("What intervals types would you like a random selection to be made from? Choices are: " + str(list(PythonEarTrainer.intervalTypesDictionary.keys())) + ".\nType the intervals separated by a comma (ex: major second, perfect fifth).\nTo select all interval types, type 'all'.\nNOTE: Choosing to include inversions later will add an additional interval type for every interval chosen here ")
 				if( intervalChoices.lower() == "all" ):
 					PythonEarTrainer.chordOrIntervalTypeChoices = PythonEarTrainer.intervalTypesDictionary.keys()
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = True
@@ -180,7 +184,7 @@ class PythonEarTrainer:
 							PythonEarTrainer.chordOrIntervalTypeChoices.append(interval)
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = len(PythonEarTrainer.chordOrIntervalTypeChoices) > 1
 			if(PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval)):
-				chordChoices = input("What chord types would you like a random selection to be made from? Choices are " + str(list(PythonEarTrainer.chordTypesDictionary.keys())) + ".\nType the groups you want to select from separated by a comma (ex: Ninths,Thirteenths,Triads). To select from all chord types, type 'all'. ")
+				chordChoices = input("What chord types would you like a random selection to be made from? Choices are " + str(list(PythonEarTrainer.chordTypesDictionary.keys())) + ".\nType the groups you want to select from separated by a comma (ex: Ninths,Thirteenths,Triads).\nTo select from all chord types, type 'all'. ")
 				# TODO better input validation
 				if( chordChoices.lower() == "all" ):
 					PythonEarTrainer.chordOrIntervalTypeChoices = PythonEarTrainer.chordTypesDictionary.keys()
