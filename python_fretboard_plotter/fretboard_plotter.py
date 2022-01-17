@@ -23,7 +23,6 @@ class FretboardPlotter:
 
 	# can refer to chords here: https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py
 	chordsToChordIndexesDictionary = {
-	# reference:
 		# Indexes  	 	   0     1     2    3     4    5    6      7    8     9    10    11
 						#['C' , 'Db', 'D', 'Eb', 'E', 'F', 'Gb' , 'G', 'Ab', 'A', 'Bb', 'B']
 		# maj scale notes  1     	   2          3    4           5          6          7
@@ -124,7 +123,6 @@ class FretboardPlotter:
 	}
 
 	scalesToScaleIndexesDictionary = {
-		# reference:
 		# Indexes: 	 	  	   0     1     2    3     4    5    6      7    8     9    10    11
 							#['C' , 'Db', 'D', 'Eb', 'E', 'F', 'Gb' , 'G', 'Ab', 'A', 'Bb', 'B']
 		# maj scale notes: 	   1     	   2          3    4           5          6          7
@@ -171,7 +169,7 @@ class FretboardPlotter:
 	def populate_strings():
 		strings = {i:0 for i in 'EADG'}
 		for i in strings.keys():
-			# combines sharps and flats into a list of tuples, with equal accidentals occupying the same index, with sharps in position 0 and flats in pos 1
+			# combines sharps and flats into a list of tuples with equal accidentals occupying the same index & sharps in position 0 and flats in pos 1
 			# 	[('C', 'C'), ('C#', 'Db'), ('D', 'D'), ('D#', 'Eb'), ('E', 'E'), ('F', 'F'), ('F#', 'Gb'), ('G', 'G'), ('G#', 'Ab').....
 			sharpsAndFlats = list(zip(FretboardPlotter.whole_notes_sharps, FretboardPlotter.whole_notes_flats))
 			#start = index of the first tuple containing E|A|D|G in sharpsAndFlats
