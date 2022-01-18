@@ -301,7 +301,7 @@ class Plottable:
 
 # END classes
 # ********************************************************************************************************************************************************
-# Logic below
+# User Input Logic below
 
 listOfPlottables = []
 graphTitle = ""
