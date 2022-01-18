@@ -131,4 +131,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-GeneralUser_GS_v1.471.sf2
+*.sf2
+

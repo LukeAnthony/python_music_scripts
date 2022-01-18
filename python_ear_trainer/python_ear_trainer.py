@@ -10,8 +10,8 @@ from mingus.midi import fluidsynth
 import random, sys, math
 
 try:
-	# paste path to your own soundfont file below
-	fluidsynth.init("C:/Users/lukeb/Desktop/repos/python_music_scripts/python_ear_trainer/Studio_FG460s_II_Pro_Guitar_Pack.sf2")
+	# can find soundfonts here https://musical-artifacts.com/
+	fluidsynth.init(sys.argv[1])
 except IndexError:
 	print("Error. Couldn't locate soundfont file")
 	exit()
@@ -326,7 +326,7 @@ class PythonEarTrainer:
 	@staticmethod
 	def getRandomNote():
 		randomRoot = PythonEarTrainer.getRandomRoot()
-		return Note(randomRoot, PythonEarTrainer.octave, None, 105, 1)
+		return Note(randomRoot, PythonEarTrainer.octave, None, 127, 1)
 
 	@staticmethod
 	def getRandomRoot():
