@@ -125,11 +125,11 @@ class PythonEarTrainer:
 		PythonEarTrainer.octaveChoices = []
 		PythonEarTrainer.noteChoices = []
 
-		PythonEarTrainer.noteChordOrInterval = input("Do you want to hear a random note, a random chord, or a random interval? Enter 'N' for note, 'C' for chord, 'I' for interval ")
+		PythonEarTrainer.noteChordOrInterval = input("\nDo you want to hear a random note, a random chord, or a random interval? Enter 'N' for note, 'C' for chord, 'I' for interval ")
 		if( not PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) ):
 			raise ValueError("Input wasn't 'N','C', or 'I")
 		
-		noteRange = input("Which notes would you like the program to randomly choose between?\nEnter them separated by commas (ex: C,Eb,G#,F).\nOr enter 'all' to shuffle between all notes.\nOr enter a range of numbers, from 1-12 in the format 'x-y' with C=1 and B=12, to shuffle between those (ex: 1-5 to shuffly between C,C#,D,D#,E) " )
+		noteRange = input("\nWhich notes would you like the program to randomly choose between?\nEnter them separated by commas (ex: C,Eb,G#,F).\nOr enter 'all' to shuffle between all notes.\nOr enter a range of numbers, from 1-12 in the format 'x-y' with C=1 and B=12, to shuffle between those (ex: 1-5 to shuffly between C,C#,D,D#,E) " )
 		if noteRange.lower() == "all":
 			PythonEarTrainer.noteChoices = PythonEarTrainer.defaultNoteList
 		else:
@@ -153,7 +153,7 @@ class PythonEarTrainer:
 					else:
 						PythonEarTrainer.noteChoices.append(note)
 
-		octaveString = input("Which octave(s), from 1-6, do you want to the program to randomly place the note/chord/root of the interval in? Type the octaves separated by a comma (ex: 1,2,3).\nType 'all' to randomly choose between octaves 1-6 ")
+		octaveString = input("\nWhich octave(s), from 1-6, do you want to the program to randomly place the note/chord/root of the interval in? Type the octaves separated by a comma (ex: 1,2,3).\nType 'all' to randomly choose between octaves 1-6 ")
 		if( octaveString.lower() == "all" ):
 			PythonEarTrainer.octaveChoices = PythonEarTrainer.defaultOctaveList
 		else:
@@ -171,7 +171,7 @@ class PythonEarTrainer:
 
 		if PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) or PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval):
 			if PythonEarTrainer.isInterval( PythonEarTrainer.noteChordOrInterval ):
-				intervalChoices = input("What intervals types would you like a random selection to be made from? Choices are: " + str(list(PythonEarTrainer.intervalTypesDictionary.keys())) + ".\nType the intervals separated by a comma (ex: major second, perfect fifth).\nTo select all interval types, type 'all'.\nNOTE: Choosing to include inversions later will add an additional interval type for every interval chosen here ")
+				intervalChoices = input("\nWhat intervals types would you like a random selection to be made from? Choices are: " + str(list(PythonEarTrainer.intervalTypesDictionary.keys())) + ".\nType the intervals separated by a comma (ex: major second, perfect fifth).\nTo select all interval types, type 'all'.\nNOTE: Choosing to include inversions later will add an additional interval type for every interval chosen here ")
 				if( intervalChoices.lower() == "all" ):
 					PythonEarTrainer.chordOrIntervalTypeChoices = PythonEarTrainer.intervalTypesDictionary.keys()
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = True
@@ -184,7 +184,7 @@ class PythonEarTrainer:
 							PythonEarTrainer.chordOrIntervalTypeChoices.append(interval)
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = len(PythonEarTrainer.chordOrIntervalTypeChoices) > 1
 			if(PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval)):
-				chordChoices = input("What chord types would you like a random selection to be made from? Choices are " + str(list(PythonEarTrainer.chordTypesDictionary.keys())) + ".\nType the groups you want to select from separated by a comma (ex: Ninths,Thirteenths,Triads).\nTo select from all chord types, type 'all'. ")
+				chordChoices = input("\nWhat chord types would you like a random selection to be made from? Choices are " + str(list(PythonEarTrainer.chordTypesDictionary.keys())) + ".\nType the groups you want to select from separated by a comma (ex: Ninths,Thirteenths,Triads).\nTo select from all chord types, type 'all'. ")
 				# TODO better input validation
 				if( chordChoices.lower() == "all" ):
 					PythonEarTrainer.chordOrIntervalTypeChoices = PythonEarTrainer.chordTypesDictionary.keys()
@@ -200,7 +200,7 @@ class PythonEarTrainer:
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = len(PythonEarTrainer.chordOrIntervalTypeChoices) > 1
 
 			# both intervals and chords have the option to include inversions
-			invertChordOrInterval = input("Y/N Do you want to include inversions? ")
+			invertChordOrInterval = input("\nY/N Do you want to include inversions? ")
 			if( invertChordOrInterval.lower() != "y" and invertChordOrInterval.lower() != "n" ):
 				raise ValueError("Answer must be Y/N")
 			PythonEarTrainer.invertChordOrInterval = invertChordOrInterval.lower() == "y"
