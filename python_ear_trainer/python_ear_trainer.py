@@ -21,8 +21,6 @@ class PythonEarTrainer:
 	noteChordOrInterval = ""
 	octave = 0
 	invertChordOrInterval = False
-	majorMinorAllocation = 0
-
 	firstAttempt = True
 	correctGuesses = 0.0
 	totalAttempts = 0.0
@@ -298,12 +296,16 @@ class PythonEarTrainer:
 					continue
 			# only ask if user entered 'all' or more than one type and if a guess hasn't been made already/if user asked to repeat the chord
 			if (not typeGuess or typeGuess.lower() == "r") and PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice:
-				typeGuess = input("What do you think the type of this chord is (triad, augmented, suspended, etc...)? Press R to repeat it ")
+				typeGuess = input("What do you think the type of this chord is?\nYour choices are:\n\t" + str(PythonEarTrainer.chordOrIntervalTypeChoices) + "\nPress R to repeat it ")
 				if(typeGuess.lower() == "r"):
 					continue
 			if not nameGuess or nameGuess.lower() == "r":
-				nameGuess = input("Excluding the root, what is the name of this chord? Your choices are: " +  + " Press R to repeat it ")
-				nameGuess = input("Excluding the root, what is the name of this chord (suspended second, major sixth, etc...)? Press R to repeat it ")
+				chordChoices = []
+				for chordType in PythonEarTrainer.chordOrIntervalTypeChoices:
+					chordChoices.append(PythonEarTrainer.chordTypesDictionary[chordType][0])
+				nameGuess = input("Excluding the root, what is the name of this chord?\nYour choices are:\n\t" + str(chordChoices) + "\nPress R to repeat it ")
+				#nameGuess = input("Excluding the root, what is the name of this chord? Your choices are:\n\t" + str(PythonEarTrainer.chordTypesDictionary[randomChord.chordTypeList][0]) + "\nPress R to repeat it ")
+				#nameGuess = input("Excluding the root, what is the name of this chord (suspended second, major sixth, etc...)? Press R to repeat it ")
 				if(nameGuess.lower() == "r"):
 					continue
 
