@@ -38,6 +38,10 @@ class PythonEarTrainer:
 	moreThanOneChordOrIntervalTypeChoice = len(chordOrIntervalTypeChoices) > 1
 	# contains a map of the chord types to a touple containing a list of the chord names of that type and the functions that generate those chords
 	chordTypesDictionary = { 
+		# Can be used to manually mix chords of different types
+		# TODO allow user to build a custom list without having to edit code
+		"custom": ( [],
+			 [] ),
 		# Triads: 'm', 'M', 'dim', aug, sus4, sus2
 		"triad": ( [ "minor triad", "major triad", "diminished triad", "augmented triad", "suspended fourth triad", "suspended second triad" ],
 			 [chords.minor_triad, chords.major_triad, chords.diminished_triad, chords.augmented_triad, chords.suspended_fourth_triad, chords.suspended_second_triad] ),
@@ -149,7 +153,7 @@ class PythonEarTrainer:
 				noteRangeSplit = noteRange.split(',')
 				for note in noteRangeSplit:
 					if not notes.is_valid_note(note):
-						print("Don't recognzie note: " + note)
+						raise ValueError("Don't recognzie note: " + note)
 					else:
 						PythonEarTrainer.noteChoices.append(note)
 
@@ -161,7 +165,7 @@ class PythonEarTrainer:
 			for octaveChoice in octaveChoices:
 				octaveChoiceInt = int(octaveChoice)
 				if octaveChoiceInt not in PythonEarTrainer.defaultOctaveList:
-					print("Don't recognize octave : " + octaveChoice)
+					raise ValueError("Don't recognize octave : " + octaveChoice)
 				else:
 					PythonEarTrainer.octaveChoices.append(octaveChoiceInt)
 			# if no input was recognized
@@ -218,8 +222,9 @@ class PythonEarTrainer:
 		# giving each chord an equal chance of being selected
 		# TODO maybe give certain chords higher probability than others of appearing
 		randomChord = listOfChordFunctions[random.randrange(len(listOfChordFunctions))](randomRoot)
-		print("random root = " + str(randomRoot))
-		print("Random chord = " + str(randomChord))
+		# DEBUG to see what the root and chord tones are
+		# print("random root = " + str(randomRoot))
+		# print("Random chord = " + str(randomChord))
 		if( PythonEarTrainer.invertChordOrInterval ):
 			secondDiceRoll = random.random()
 			# will always invert given these odds. 
@@ -256,7 +261,11 @@ class PythonEarTrainer:
 				randomChordAsNoteObjects.append(toneAsNote)
 			previousNoteValue = toneValue
 			currentOctaveAboveRoot = 0
-			print("Tone = " + str(toneAsNote.name) + " tone value = " + str(toneValue) + " tone octave = " + str(toneAsNote.octave))
+			# DEBUG to see each tone in the chord, each tone's numerical note value, and each tone's octave
+			# ex) Tone = C# tone value = 1 tone octave = 3
+			#      Tone = E tone value = 4 tone octave = 3
+			#      Tone = G tone value = 7 tone octave = 3
+			# print("Tone = " + str(toneAsNote.name) + " tone value = " + str(toneValue) + " tone octave = " + str(toneAsNote.octave))
 		#.determine() returns all matching names in list. first entry is most accurate. excluding root note in the chord name since we already have it
 		chordName = ' '.join(chords.determine(randomChord)[0].split(' ')[1:])
 		# to get chord type list:
@@ -273,7 +282,6 @@ class PythonEarTrainer:
 	def playAndGuessRandomChord(randomChord):
 		b = Bar()
 		# placing the chord as two half notes in the bar
-		print(randomChord.chordTones)
 		b.place_notes(randomChord.chordTones, 2)
 		b.place_notes(randomChord.chordTones, 2)
 		rootGuess = ""
@@ -294,11 +302,12 @@ class PythonEarTrainer:
 				if(typeGuess.lower() == "r"):
 					continue
 			if not nameGuess or nameGuess.lower() == "r":
+				nameGuess = input("Excluding the root, what is the name of this chord? Your choices are: " +  + " Press R to repeat it ")
 				nameGuess = input("Excluding the root, what is the name of this chord (suspended second, major sixth, etc...)? Press R to repeat it ")
 				if(nameGuess.lower() == "r"):
 					continue
 
-			print("\nThat chord was a: " + str(randomChord) + "\n")
+			print("\nThat chord was a: " + str(randomChord) + ": " + str(randomChord.chordTones) + "\n")
 
 			if(rootGuess == randomChord.randomRoot):
 				PythonEarTrainer.updateStats(1.0)
