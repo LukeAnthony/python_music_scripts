@@ -28,6 +28,9 @@ class PythonEarTrainer:
 	defaultOctaveList = [ 1, 2, 3, 4, 5, 6 ]
 	octaveChoices = []
 	octave = 0
+	# storing the last random selection so that a new one could be generated if there's a repeat
+	lastRandomRoot = None
+	lastRandomChordOrInterval = None
 	# notes are converted to int values so only listing flats here is fine
 	defaultNoteList = [ "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B" ]
 	noteChoices = []
@@ -38,7 +41,7 @@ class PythonEarTrainer:
 	chordTypesDictionary = { 
 		# Can be used to manually mix chords of different types
 		# TODO allow user to build a custom list without having to edit code
-		"custom": ( [],
+		"custom": ( ["minor triad", "major triad"],
 			 [] ),
 		# Triads: 'm', 'M', 'dim', aug, sus4, sus2
 		"triad": ( [ "minor triad", "major triad", "diminished triad", "augmented triad", "suspended fourth triad", "suspended second triad" ],
@@ -126,6 +129,8 @@ class PythonEarTrainer:
 		PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = False
 		PythonEarTrainer.octaveChoices = []
 		PythonEarTrainer.noteChoices = []
+		PythonEarTrainer.lastRandomChordOrInterval = None
+		PythonEarTrainer.lastRandomRoot = None
 
 		PythonEarTrainer.noteChordOrInterval = input("\nDo you want to hear a random note, a random chord, or a random interval? Enter 'N' for note, 'C' for chord, 'I' for interval ")
 		if( not PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval) and not PythonEarTrainer.isInterval(PythonEarTrainer.noteChordOrInterval) ):
@@ -211,6 +216,15 @@ class PythonEarTrainer:
 	def setRandomOctave():
 		PythonEarTrainer.octave = PythonEarTrainer.octaveChoices[random.randrange(len(PythonEarTrainer.octaveChoices))]
 
+	# Avoiding Repeats
+	# If rootChoice == 1 and chordChoice == 1
+		# keep root, keep chord
+	# If rootChoice > 1 and chordChoice > 1
+		# generate a new chord and a new root until new (root,chord) != old (root,chord) 
+	# If rootChoice == 1 and chordChoice > 1
+		# keep root, generate a new chord until it != last random chord
+	# If rootChoice > 1 and chordChoice == 1
+		# generate a new root until it != last random root, keep chord
 	@staticmethod
 	def getRandomChord():
 		randomRoot = PythonEarTrainer.getRandomRoot()
@@ -220,6 +234,13 @@ class PythonEarTrainer:
 		# giving each chord an equal chance of being selected
 		# TODO maybe give certain chords higher probability than others of appearing
 		randomChord = listOfChordFunctions[random.randrange(len(listOfChordFunctions))](randomRoot)
+		print(randomChord)
+		# re-generate a random chord until you get a different value than last time, as long as there's more than one entry to choose from   
+		if (PythonEarTrainer.lastRandomRoot is not None and len(PythonEarTrainer.noteChoices) > 1) and (PythonEarTrainer.lastRandomChordOrInterval is not None and len(listOfChordFunctions) > 1):
+			while randomChord == PythonEarTrainer.lastRandom:
+				randomChord = listOfChordFunctions[random.randrange(len(listOfChordFunctions))](randomRoot)
+			print(randomChord)
+		PythonEarTrainer.lastRandom = randomChord
 		# DEBUG to see what the root and chord tones are
 		# print("random root = " + str(randomRoot))
 		# print("Random chord = " + str(randomChord))
