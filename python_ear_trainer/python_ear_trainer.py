@@ -38,8 +38,8 @@ class PythonEarTrainer:
 	chordTypesDictionary = { 
 		# Can be used to manually mix chords of different types
 		# TODO allow user to build a custom list without having to edit code
-		"custom": ( [],
-			 [] ),
+		"custom": ( ["minor triad", "major triad"],
+			 [chords.minor_triad, chords.major_triad] ),
 		# Triads: 'm', 'M', 'dim', aug, sus4, sus2
 		"triad": ( [ "minor triad", "major triad", "diminished triad", "augmented triad", "suspended fourth triad", "suspended second triad" ],
 			 [chords.minor_triad, chords.major_triad, chords.diminished_triad, chords.augmented_triad, chords.suspended_fourth_triad, chords.suspended_second_triad] ),
@@ -186,6 +186,7 @@ class PythonEarTrainer:
 							PythonEarTrainer.chordOrIntervalTypeChoices.append(interval)
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = len(PythonEarTrainer.chordOrIntervalTypeChoices) > 1
 			if(PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval)):
+				# TODO need to rework this whole thing
 				chordChoices = input("\nWhat chord types would you like a random selection to be made from? Choices are " + str(list(PythonEarTrainer.chordTypesDictionary.keys())) + ".\nType the groups you want to select from separated by a comma (ex: Ninths,Thirteenths,Triads).\nTo select from all chord types, type 'all'. ")
 				# TODO better input validation
 				if( chordChoices.lower() == "all" ):
@@ -311,7 +312,7 @@ class PythonEarTrainer:
 
 			print("\nThat chord was a: " + str(randomChord) + ": " + str(randomChord.chordTones) + "\n")
 
-			if(rootGuess == randomChord.randomRoot):
+			if(notes.note_to_int(rootGuess) == notes.note_to_int(randomChord.randomRoot)):
 				PythonEarTrainer.updateStats(1.0)
 				print("You were correct. The root is: " + rootGuess)
 			else:
