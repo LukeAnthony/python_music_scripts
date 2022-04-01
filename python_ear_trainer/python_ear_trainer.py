@@ -34,8 +34,42 @@ class PythonEarTrainer:
 	# use same list and boolean for interval type choices and chord type choice
 	chordOrIntervalTypeChoices = []
 	moreThanOneChordOrIntervalTypeChoice = len(chordOrIntervalTypeChoices) > 1
+	newChordTypesDictionary = {
+		"major triad": chords.major_triad,
+		"major sixth": chords.major_sixth,
+		"major seventh": chords.major_seventh,
+		"major ninth": major_ninth,
+		"minor triad": chords.minor_triad,
+		"minor sixth": chords.minor_sixth,
+		"minor seventh": chords.minor_seventh,
+		"minor ninth": chords.minor_ninth,
+		"dominant sixth": chords.dominant_sixth,
+		"dominant seventh": chords.dominant_seventh,
+		"dominant ninth": chords.dominant_ninth,
+		"dominant flat ninth": chords.dominant_flat_ninth,
+		"dominant sharp ninth": chords.dominant_sharp_ninth,
+		"diminished triad": chords.diminished_triad,
+		"diminished seventh": chords.diminished_seventh,
+		"half-diminished seventh": chords.half_diminished_seventh, 
+		"augmented triad": chords.augmented_triad,
+		"augmented major seventh": chords.augmented_major_seventh,
+		"augmented minor seventh": chords.augmented_minor_seventh,
+		"suspended second triad": chords.suspended_second_triad,
+		"suspended fourth triad": chords.suspended_fourth_triad,
+		"suspended fourth ninth": chords.suspended_fourth_ninth,
+		"suspended seventh": chords.suspended_seventh,
+		"minor/major seventh": chords.minor_major_seventh,
+		"eleventh": chords.eleventh,
+		 "minor eleventh": chords.minor_eleventh,
+		"lydian dominant seventh": chords.lydian_dominant_seventh,
+		"six ninth": chords.sixth_ninth
+
+		
+
+	}
 	# contains a map of the chord types to a touple containing a list of the chord names of that type and the functions that generate those chords
-	chordTypesDictionary = { 
+	chordTypesDictionary = {
+
 		# Can be used to manually mix chords of different types
 		# TODO allow user to build a custom list without having to edit code
 		"custom": ( ["minor triad", "major triad"],
@@ -59,8 +93,8 @@ class PythonEarTrainer:
 		"ninth": ( [ "dominant ninth", "major ninth", "minor ninth", "dominant flat ninth", "dominant sharp ninth", "sixth ninth" ],
 			[chords.dominant_ninth, chords.major_ninth, chords.minor_ninth, chords.dominant_flat_ninth, chords.dominant_sharp_ninth, chords.sixth_ninth] ),
 		# Elevenths: '7#11', 'm11'
-		"eleventh": ( [ "lydian dominant seventh", "minor eleventh" ],
-			[chords.lydian_dominant_seventh, chords.minor_eleventh] ),
+		"eleventh": ( [ "eleventh", "lydian dominant seventh", "minor eleventh" ],
+			[chords.eleventh, chords.lydian_dominant_seventh, chords.minor_eleventh] ),
 		# Thirteenths: '13' , 'M13', 'm13'
 		"thirteenth": ( [ "dominant thirteenth", "major thirteenth", "minor thirteenth" ], 
 			[chords.dominant_thirteenth, chords.major_thirteenth, chords.minor_thirteenth] ),
