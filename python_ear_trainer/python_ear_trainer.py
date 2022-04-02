@@ -34,20 +34,26 @@ class PythonEarTrainer:
 	# use same list and boolean for interval type choices and chord type choice
 	chordOrIntervalTypeChoices = []
 	moreThanOneChordOrIntervalTypeChoice = len(chordOrIntervalTypeChoices) > 1
-	newChordTypesDictionary = {
+	# WIP use this instead of types
+	chordsDictionary = {
 		"major triad": chords.major_triad,
 		"major sixth": chords.major_sixth,
 		"major seventh": chords.major_seventh,
 		"major ninth": major_ninth,
+		"major thirteenth": chords.major_thirteenth,
 		"minor triad": chords.minor_triad,
 		"minor sixth": chords.minor_sixth,
 		"minor seventh": chords.minor_seventh,
 		"minor ninth": chords.minor_ninth,
+		"minor/major seventh": chords.minor_major_seventh,
+		"minor thirteenth": chords.minor_thirteenth,
+		"dominant flat five": chords.dominant_flat_five,
 		"dominant sixth": chords.dominant_sixth,
 		"dominant seventh": chords.dominant_seventh,
 		"dominant ninth": chords.dominant_ninth,
 		"dominant flat ninth": chords.dominant_flat_ninth,
 		"dominant sharp ninth": chords.dominant_sharp_ninth,
+		"dominant thirteenth": chords.dominant_thirteenth,
 		"diminished triad": chords.diminished_triad,
 		"diminished seventh": chords.diminished_seventh,
 		"half-diminished seventh": chords.half_diminished_seventh, 
@@ -58,14 +64,11 @@ class PythonEarTrainer:
 		"suspended fourth triad": chords.suspended_fourth_triad,
 		"suspended fourth ninth": chords.suspended_fourth_ninth,
 		"suspended seventh": chords.suspended_seventh,
-		"minor/major seventh": chords.minor_major_seventh,
-		"eleventh": chords.eleventh,
-		 "minor eleventh": chords.minor_eleventh,
-		"lydian dominant seventh": chords.lydian_dominant_seventh,
 		"six ninth": chords.sixth_ninth
-
-		
-
+		"eleventh": chords.eleventh,
+		"minor eleventh": chords.minor_eleventh,
+		"lydian dominant seventh": chords.lydian_dominant_seventh,
+		"hendrix chord": chords.hendrix_chord
 	}
 	# contains a map of the chord types to a touple containing a list of the chord names of that type and the functions that generate those chords
 	chordTypesDictionary = {
