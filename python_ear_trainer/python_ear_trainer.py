@@ -101,6 +101,10 @@ class PythonEarTrainer:
 		return input.lower() == "c"
 
 	@staticmethod
+	def isProgression(input):
+		return input.lower() == "p"
+
+	@staticmethod
 	def isNote(input):
 		return input.lower() == "n"
 
@@ -188,7 +192,6 @@ class PythonEarTrainer:
 							PythonEarTrainer.chordOrIntervalTypeChoices.append(interval)
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = len(PythonEarTrainer.chordOrIntervalTypeChoices) > 1
 			if(PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval)):
-				# TODO need to rework this whole thing
 				chordChoices = input("\nWhat chords would you like a random selection to be made from? Choices are\n\n " + str(list(PythonEarTrainer.chordsDictionary.keys())) + ".\n\nType the chords you want to select from separated by a comma (ex: Ninths,Thirteenths,Triads).\nTo select from all chord types, type 'all'. ")
 				# TODO better input validation
 				if( chordChoices.lower() == "all" ):
@@ -311,6 +314,14 @@ class PythonEarTrainer:
 				print("Incorrect. You guessed: " + nameGuess + ". The chord name was: " + randomChord.chordName)
 				PythonEarTrainer.updateStats(0.0)
 			break
+
+	@staticmethod
+	def getRandomProgression():
+		return None 
+
+	@staticmethod
+	def playAndGuessRandomProgression():
+		return None 
 
 	@staticmethod
 	def getRandomNote():
@@ -452,6 +463,20 @@ class PythonEarTrainer:
 					print("Incorrect! The interval wasn't : " + intervalGuess + ". It was " + str(randomInterval.intervalType))
 					PythonEarTrainer.updateStats(0.0)
 				break
+
+class RandomProgression:
+	def __init__(self, key, progressionInRomanNumerals, listOfChordsPerBar, )
+		# the key that the progression is derived from
+		# ex) Cm, E....
+		self.key = key
+		self.progressionInRomanNumerals = progressionInRomanNumerals
+		# list of chords that make up each bar of the progression
+		# ex) 12 bar blues in E = [E,E,E,E,A,A,E,E,B,A,E,E]
+		# TODO these should probably be chord objects
+		self.listOfChordsPerBar = listOfChordsPerBar
+
+	def __str__(self):
+		return '{self.progressionInRomanNumerals} in {self.key}: {self.listOfChordsPerBar}'
 
 class RandomChord:
 	def __init__(self, randomRoot, chordTones, chordTonesAsNoteObjects, chordName):
