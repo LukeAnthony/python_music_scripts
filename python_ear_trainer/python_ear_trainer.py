@@ -465,7 +465,7 @@ class PythonEarTrainer:
 				break
 
 class RandomProgression:
-	def __init__(self, key, progressionInRomanNumerals, listOfChordsPerBar, )
+	def __init__(self, key, progressionInRomanNumerals, listOfChordsPerBar ):
 		# the key that the progression is derived from
 		# ex) Cm, E....
 		self.key = key
