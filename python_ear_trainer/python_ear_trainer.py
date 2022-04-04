@@ -272,12 +272,13 @@ class PythonEarTrainer:
 			# print("Tone = " + str(toneAsNote.name) + " tone value = " + str(toneValue) + " tone octave = " + str(toneAsNote.octave))
 		#.determine() returns all matching names in list. first entry is most accurate. excluding root note in the chord name since we already have it
 		chordName = ' '.join(chords.determine(randomChord)[0].split(' ')[1:])
-		return RandomChord(randomRoot, randomChord, randomChordAsNoteObjects, chordName )
+		return RandomChord(randomRoot, randomChord, randomChordAsNoteObjects, chordName)
 
 	@staticmethod
 	# use 'tonic' method to get root https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L571
 	# Need to use chords.determine https://github.com/bspaans/python-mingus/blob/master/mingus/core/chords.py#L919 
-	def playAndGuessRandomChord(randomChord):
+	def playAndGuessRandomChord():
+		randomChord = PythonEarTrainer.getRandomChord()
 		b = Bar()
 		# placing the chord as two half notes in the bar
 		b.place_notes(randomChord.chordTones, 2)
@@ -335,7 +336,8 @@ class PythonEarTrainer:
 		# return notes.int_to_note(random.randint(0, PythonEarTrainer.noteRange - 1), "b" if random.random() > .5 else "#")
 
 	@staticmethod
-	def playAndGuessRandomNote(randomNote):
+	def playAndGuessRandomNote():
+		randomNote = PythonEarTrainer.getRandomNote()
 		while True:
 			b = Bar()
 			b.place_notes(randomNote.name, 2)
@@ -381,6 +383,7 @@ class PythonEarTrainer:
 
 	@staticmethod
 	def getRandomInterval():
+		# TODO replace this with getRandomNote???
 		randomRootNote = Note( PythonEarTrainer.getRandomRoot(), PythonEarTrainer.octave, None, 105, 1 )
 		randomRootName = randomRootNote.name
 		listOfIntervalFunctions = []
@@ -409,7 +412,8 @@ class PythonEarTrainer:
 			return RandomInterval( randomRootNote, Note( randomIntervalName, secondNoteOctave, None, 105, 1 ), PythonEarTrainer.calculateIntervalType( randomRootName, randomIntervalName ) )
 
 	@staticmethod
-	def playAndGuessRandomInterval(randomInterval):
+	def playAndGuessRandomInterval():
+		randomInterval = PythonEarTrainer.getRandomInterval()
 		b = Bar()
 		# quarter note each
 		b.place_notes(randomInterval.get_first_note_name_and_octave(), 2)
@@ -515,6 +519,14 @@ class RandomInterval:
 	# randomly generate a chord progression from a list of popular chord progressions
 	# play those chords in the order of the progression
 	# have the user guess what the key is, what the progression is, and what the chords are
+# TODO chord tone removal guessing game
+	# User enters a list of possible root notes, chord types, and the number of possible notes 
+	# randomly generate a chord
+	# play the full chord. then remove a note or notes from it 
+	# user guesses 
+		# the original chord name
+		# the tones in the original chord
+		# the tones removed from the chord 
 # TODO add correct/incorrect sound effects
 while(True):
 	if(PythonEarTrainer.firstAttempt):
@@ -528,11 +540,10 @@ while(True):
 			PythonEarTrainer.setRandomOctave()
 		else:
 			raise ValueError("Need to enter R or N next time")
-	if( PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval) ):
-		PythonEarTrainer.playAndGuessRandomNote(PythonEarTrainer.getRandomNote())
+	if( PythonEarTrainer.isNote(PythonEarTrainer.noteChordOrInterval)):
+		PythonEarTrainer.playAndGuessRandomNote()
 	elif PythonEarTrainer.isChord(PythonEarTrainer.noteChordOrInterval):
-		PythonEarTrainer.playAndGuessRandomChord(PythonEarTrainer.getRandomChord())
+		PythonEarTrainer.playAndGuessRandomChord()
 	else:
-		PythonEarTrainer.playAndGuessRandomInterval(PythonEarTrainer.getRandomInterval())
-		
+		PythonEarTrainer.playAndGuessRandomInterval()
 	print("Current Stats: \n\t[Correct Guesses]= " + str(PythonEarTrainer.correctGuesses) + "\n\t[Total Attempts]= " + str(PythonEarTrainer.totalAttempts) + "\n\t[Percent Correct]= " + str(PythonEarTrainer.percentCorrect) + "\n")
