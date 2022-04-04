@@ -476,7 +476,7 @@ class RandomProgression:
 		self.listOfChordsPerBar = listOfChordsPerBar
 
 	def __str__(self):
-		return '{self.progressionInRomanNumerals} in {self.key}: {self.listOfChordsPerBar}'
+		return f'{self.progressionInRomanNumerals} in {self.key}: {self.listOfChordsPerBar}'
 
 class RandomChord:
 	def __init__(self, randomRoot, chordTones, chordTonesAsNoteObjects, chordName):
@@ -490,7 +490,7 @@ class RandomChord:
 		self.chordName = chordName
 
 	def __str__(self):
-		return '{self.randomRoot} {self.chordName}: {self.chordTones}' 
+		return f'{self.randomRoot} {self.chordName}: Tones={self.chordTones}, note objects = {self.chordTonesAsNoteObjects}' 
 
 class RandomInterval:
 	def __init__(self, firstNote, secondNote, intervalType):
