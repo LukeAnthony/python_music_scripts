@@ -89,6 +89,22 @@ class PythonEarTrainer:
 		"m7" : intervals.minor_seventh,
 		"M7" : intervals.major_seventh
 	}
+
+	intervalNamesToAbbreviations = {
+			"major unison" : ["P1"],
+			"minor second" : ["m2"],
+			"major second" : ["M2"],
+			"minor third" : ["m3"],
+			"major third" : ["M3"],
+			"perfect fourth" : ["P4"],
+			"minor fifth" : ["A4,dim5"],
+			"perfect fifth" : ["A4,dim5"],
+			"minor sixth" : ["m6"],
+			"major sixth" : ["M6"],
+			"minor seventh" : ["m7"],
+			"major seventh" : ["M7"],
+			"perfect octave" : ["P8"]
+	}
 	
 	@staticmethod
 	def updateStats(points):
@@ -362,24 +378,9 @@ class PythonEarTrainer:
 
 	@staticmethod
 	def calculateIntervalType(firstNoteName, secondNoteName):
-		intervalNamesToAbbreviations = {
-			"major unison" : ["P1"],
-			"minor second" : ["m2"],
-			"major second" : ["M2"],
-			"minor third" : ["m3"],
-			"major third" : ["M3"],
-			"perfect fourth" : ["P4"],
-			"minor fifth" : ["A4,dim5"],
-			"perfect fifth" : ["A4,dim5"],
-			"minor sixth" : ["m6"],
-			"major sixth" : ["M6"],
-			"minor seventh" : ["m7"],
-			"major seventh" : ["M7"],
-			"perfect octave" : ["P8"]
-		}
 		# TODO logic for perfect octave
 		intervalType = intervals.determine( firstNoteName, secondNoteName )
-		return intervalNamesToAbbreviations[intervalType]
+		return PythonEarTrainer.intervalNamesToAbbreviations[intervalType]
 
 	@staticmethod
 	def getRandomInterval():
