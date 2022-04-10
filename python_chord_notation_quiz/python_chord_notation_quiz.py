@@ -13,7 +13,7 @@ How to type symbols on mac, windows
 	diminished
 		option k  = ˚
 		alt 248 = ° 
-		(need to figure out how to get that on mac...they clearly are different) 
+		TODO (need to figure out how to get that on mac...they clearly are different) 
 	half-diminished chords
 		option o = ø
 		alt 0248 = ø
@@ -58,9 +58,22 @@ Chords supported
 """
 class PythonChordNotation:
 	isFirstAttempt = True
+	correctGuesses = 0.0
+	totalAttempts = 0.0
+	percentCorrect = ""
 	
 	@staticMethod
 	def getSettings():
 
 
+class NotationGenerator:
+
+
+class NameGenerator: 
+
+
 while(True):
+	mode = input("There are three game modes.\n\t#1 = given a chord name, enter the notation.\n\t#2 = given a notation, enter the chord name.\n\t#3 given either a chord name or notation, enter the opposite.\nEnter 1 for mode #1, 2 for mode #2, or 3 for mode #3")
+
+	print("Current Stats: \n\t[Correct Guesses]= " + str(PythonChordNotation.correctGuesses) + "\n\t[Total Attempts]= " + str(PythonChordNotation.totalAttempts) + "\n\t[Percent Correct]= " + str(PythonChordNotation.percentCorrect) + "\n")
+
