@@ -21,6 +21,8 @@ class PythonEarTrainer:
 	noteChordOrInterval = ""
 	octave = 0
 	invertChordOrInterval = False
+	guessRootOfChord = False
+	guessChordType = False
 	firstAttempt = True
 	correctGuesses = 0.0
 	totalAttempts = 0.0
@@ -222,6 +224,18 @@ class PythonEarTrainer:
 						else:
 							PythonEarTrainer.chordOrIntervalTypeChoices.append(chord)
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = len(PythonEarTrainer.chordOrIntervalTypeChoices) > 1
+				whatToGuess = input("\nWould you like to guess the root of the chord, the chord type, or both? Enter 'R' for root, 'CT' for chord type, or 'B' for both ")
+				if( whatToGuess.lower() == 'r' ):
+					PythonEarTrainer.guessRootOfChord = True
+				elif( whatToGuess.lower() == 'ct'):
+					PythonEarTrainer.guessChordType = True
+				elif( whatToGuess.lower() == 'b'):
+					PythonEarTrainer.guessRootOfChord = True
+					PythonEarTrainer.guessChordType = True
+				else:
+					print("\nCouldn't read input. Will default to guessing both root and chord type")
+					PythonEarTrainer.guessRootOfChord = True
+					PythonEarTrainer.guessChordType = True
 
 			# both intervals and chords have the option to include inversions
 			invertChordOrInterval = input("\nY/N Do you want to include inversions? ")
@@ -306,30 +320,32 @@ class PythonEarTrainer:
 			# plays half note four times
 			fluidsynth.play_Bar(b, 1, 60)
 			fluidsynth.play_Bar(b, 1, 60)
-			if not rootGuess or rootGuess.lower() == "r":
-				rootGuess = input("What do you think the root of this chord is? Press R to repeat it ")
+			if (PythonEarTrainer.guessRootOfChord and not rootGuess) or rootGuess.lower() == "r":
+				rootGuess = input("\nWhat do you think the root of this chord is? Press R to repeat it ")
 				if(rootGuess.lower() == "r"):
 					continue
-			if not nameGuess or nameGuess.lower() == "r":
-				nameGuess = input("Excluding the root, what is the name of this chord?\nYour choices are:\n\t" + str(PythonEarTrainer.chordOrIntervalTypeChoices) + "\nPress R to repeat it ")
+			if (PythonEarTrainer.guessChordType and not nameGuess) or nameGuess.lower() == "r":
+				nameGuess = input("\nExcluding the root, what is the name of this chord?\nYour choices are:\n\t" + str(PythonEarTrainer.chordOrIntervalTypeChoices) + "\nPress R to repeat it ")
 				if(nameGuess.lower() == "r"):
 					continue
 
 			print("\nThat chord was a: " + str(randomChord))
 
-			if(notes.note_to_int(rootGuess) == notes.note_to_int(randomChord.randomRoot)):
-				PythonEarTrainer.updateStats(1.0)
-				print("You were correct. The root is: " + rootGuess)
-			else:
-				print("Incorrect. You guessed: " + rootGuess + ". The root was: " + randomChord.randomRoot)
-				PythonEarTrainer.updateStats(0.0)
+			if PythonEarTrainer.guessRootOfChord:
+				if(notes.note_to_int(rootGuess) == notes.note_to_int(randomChord.randomRoot)):
+					PythonEarTrainer.updateStats(1.0)
+					print("You were correct. The root is: " + rootGuess)
+				else:
+					print("Incorrect. You guessed: " + rootGuess + ". The root was: " + randomChord.randomRoot)
+					PythonEarTrainer.updateStats(0.0)
 
-			if(nameGuess == randomChord.chordName):
-				PythonEarTrainer.updateStats(1.0)
-				print("You were correct. The chord name is: " + nameGuess)
-			else:
-				print("Incorrect. You guessed: " + nameGuess + ". The chord name was: " + randomChord.chordName)
-				PythonEarTrainer.updateStats(0.0)
+			if PythonEarTrainer.guessChordType:
+				if(nameGuess == randomChord.chordName):
+					PythonEarTrainer.updateStats(1.0)
+					print("You were correct. The chord name is: " + nameGuess)
+				else:
+					print("Incorrect. You guessed: " + nameGuess + ". The chord name was: " + randomChord.chordName)
+					PythonEarTrainer.updateStats(0.0)
 			break
 
 	@staticmethod
