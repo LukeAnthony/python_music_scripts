@@ -163,7 +163,7 @@ class PythonEarTrainer:
 		PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = False
 		PythonEarTrainer.octaveChoices = []
 		PythonEarTrainer.noteChoices = []
-		gameModeNumber = input("Welcome. This program supports four games. Enter the number of the game you'd you like to play.\nYour options are:\n\t1) Guess Random Note\n\t\tA random pitch is played and you have to guess the note.\n\t2) Guess Random Interval\n\t\tA random interval is played and you have to guess the first note, the second note, and the interval between the two.\n\t3) Guess random chord\n\t\tA random chord is played and you have to guess either the root, the chord type, or both\n\t4) Guess missing chord tone\n\t\tYou choose a chord. It's played once. It's then played again, but this time with one of the notes missing. You have to guess which note is missing\n")
+		gameModeNumber = input("Welcome. This program supports four games. Enter the number of the game you'd you like to play.\nYour options are:\n\t1) Guess Random Note\n\t\tA random pitch is played and you have to guess the note.\n\t2) Guess Random Interval\n\t\tA random interval is played and you have to guess the first note, the second note, and the interval between the two.\n\t3) Guess Random Chord\n\t\tA random chord is played and you have to guess either the root, the chord type, or both\n\t4) Guess Missing Chord Tone\n\t\tYou choose a chord. It's played once. It's then played again, but this time with one of the notes missing. You have to guess which note is missing\n")
 		if ( gameModeNumber not in gameModes.keys() ):
 			raise ValueError("Didn't recognize selection.  Possible values are: " + gameModes.keys())
 		
@@ -223,7 +223,7 @@ class PythonEarTrainer:
 						else:
 							PythonEarTrainer.chordOrIntervalTypeChoices.append(interval)
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = len(PythonEarTrainer.chordOrIntervalTypeChoices) > 1
-			if(PythonEarTrainer.isGameModeGuessRandomChord(PythonEarTrainer.gameMode) or PythonEarTrainer.isGameModeGuessMissingChordTone(PythonEarTrainer.gameMode)):
+			if( PythonEarTrainer.isGameModeGuessRandomChord(PythonEarTrainer.gameMode) or PythonEarTrainer.isGameModeGuessMissingChordTone(PythonEarTrainer.gameMode) ):
 				chordChoices = input("\nWhat chords would you like the program to randomly select between? Choices are\n\n " + str(list(PythonEarTrainer.chordsDictionary.keys())) + ".\n\nType the chords you want to select from separated by a comma (ex: Ninths,Thirteenths,Triads).\nTo select from all chord types, type 'all'. ")
 				# TODO better input validation
 				if( chordChoices.lower() == "all" ):
@@ -238,22 +238,28 @@ class PythonEarTrainer:
 						else:
 							PythonEarTrainer.chordOrIntervalTypeChoices.append(chord)
 					PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = len(PythonEarTrainer.chordOrIntervalTypeChoices) > 1
-
-
+				
+				# allow the user to focus on either identifying the root OR the chord type
 				guessRootOfChord = input("\nWould you like to guess the root of the chord? Enter 'Y' for yes, 'N' for no ")
 				if( guessRootOfChord.lower() == 'n' ):
 					PythonEarTrainer.guessRootOfChord = False
-				elif (guessRootOfChord.lower == 'y' ):
+				elif (guessRootOfChord.lower() == 'y' ):
 					PythonEarTrainer.guessRootOfChord = True
 				else:
 					print("\nAnswer wasn't 'Y' or 'N'. Will default to Y ")
-				guessChordType = input("\nWould you like to guess the chord type of the chord? Enter 'Y' for yes, 'N' for no ")
-				if( guessChordType.lower() == 'n' ):
-					PythonEarTrainer.guessChordType = False
-				elif (guessChordType.lower == 'y' ):
+
+				# TODO have user input the possible amount of missing tones to subtract from chord
+				# will always need to guess the chord type if trying to identify a missing note
+				if( PythonEarTrainer.isGameModeGuessMissingChordTone(PythonEarTrainer.gameMode) ):
 					PythonEarTrainer.guessChordType = True
 				else:
-					print("\nAnswer wasn't 'Y' or 'N'. Will default to Y ")
+					guessChordType = input("\nWould you like to guess the chord type of the chord? Enter 'Y' for yes, 'N' for no ")
+					if( guessChordType.lower() == 'n' ):
+						PythonEarTrainer.guessChordType = False
+					elif (guessChordType.lower() == 'y' ):
+						PythonEarTrainer.guessChordType = True
+					else:
+						print("\nAnswer wasn't 'Y' or 'N'. Will default to Y ")
 
 			# both intervals and chords have the option to include inversions
 			invertChordOrInterval = input("\nY/N Do you want to include inversions? ")
@@ -329,8 +335,8 @@ class PythonEarTrainer:
 		randomChord = PythonEarTrainer.getRandomChord()
 		b = Bar()
 		# placing the chord as two half notes in the bar
-		b.place_notes(randomChord.chordTones, 2)
-		b.place_notes(randomChord.chordTones, 2)
+		b.place_notes(randomChord.chordTonesAsNoteObjects, 2)
+		b.place_notes(randomChord.chordTonesAsNoteObjects, 2)
 		rootGuess = ""
 		nameGuess = ""
 		while True:
@@ -371,25 +377,53 @@ class PythonEarTrainer:
 	def getRandomProgression():
 		return None 
 
+	# TODO
 	@staticmethod
 	def playAndGuessRandomProgression():
 		return None 
 
-	# TODO
+	# WIP
+	@staticmethod
+	def getRandomChordWithMissingTone(randomChord):
+		# RandomChord toString = '{self.randomRoot} {self.chordName}: Tones={self.chordTones}, note objects = {self.chordTonesAsNoteObjects}'
+			# ex) C minor triad: Tones=['C', 'Eb', 'G'], note objects = ['C-2', 'Eb-2', 'G-2']
+		# RandomChord constructor = def __init__(self, randomRoot, chordTones, chordTonesAsNoteObjects, chordName)
+		randomChordChordTones = randomChord.chordTones
+		randomChordChordTonesAsNoteObjects = randomChord.chordTonesAsNoteObjects
+		# randomChordChordTones and randomChordChordTonesAsNoteObjects should be the same length
+		indexOfNoteToRemove = random.randint(1, len(randomChordChordTonesAsNoteObjects) - 1)
+		randomChordChordTones.pop(indexOfNoteToRemove)
+		randomChordChordTonesAsNoteObjects.pop(indexOfNoteToRemove)
+		return RandomChord(randomChord.randomRoot, randomChordChordTones, randomChordChordTonesAsNoteObjects, randomChord.chordName)
+
+	# WIP
 	@staticmethod
 	def playAndGuessMissingChordTone():
-		return "TODO WIP"
+		randomChord = PythonEarTrainer.getRandomChord()
+		randomChordWithMissingTone = PythonEarTrainer.getRandomChordWithMissingTone(randomChord)
 
-	@staticmethod
-	def getRandomNote():
-		randomRoot = PythonEarTrainer.getRandomRoot()
-		return Note(randomRoot, PythonEarTrainer.octave, None, 127, 1)
+		b = Bar()
+		# placing each chord as two half notes in the bar
+		b.place_notes(randomChord.chordTones, 2)
+		b.place_notes(randomChordWithMissingTone.chordTones, 2)
+		while True:
+			# play bar on channel 1 at 60bpm
+			# plays half note four times
+			fluidsynth.play_Bar(b, 1, 60)
+			fluidsynth.play_Bar(b, 1, 60)
+			fluidsynth.play_Bar(b, 1, 60)
+		return "TODO WIP"
 
 	@staticmethod
 	def getRandomRoot():
 		return PythonEarTrainer.noteChoices[random.randint(0, len(PythonEarTrainer.noteChoices) - 1)]
 		# https://github.com/bspaans/python-mingus/blob/master/mingus/core/notes.py#L36
 		# return notes.int_to_note(random.randint(0, PythonEarTrainer.noteRange - 1), "b" if random.random() > .5 else "#")
+
+	@staticmethod
+	def getRandomNote():
+		randomRoot = PythonEarTrainer.getRandomRoot()
+		return Note(randomRoot, PythonEarTrainer.octave, None, 127, 1)
 
 	@staticmethod
 	def playAndGuessRandomNote():
@@ -535,7 +569,7 @@ class RandomChord:
 		self.chordName = chordName
 
 	def __str__(self):
-		return f'{self.randomRoot} {self.chordName}: Tones={self.chordTones}, note objects = {self.chordTonesAsNoteObjects}' 
+		return f'{self.randomRoot} {self.chordName}: Tones={self.chordTones}, note objects = {self.chordTonesAsNoteObjects}'
 
 class RandomInterval:
 	def __init__(self, firstNote, secondNote, intervalType):
