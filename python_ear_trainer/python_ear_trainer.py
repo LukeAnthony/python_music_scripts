@@ -163,7 +163,7 @@ class PythonEarTrainer:
 		PythonEarTrainer.moreThanOneChordOrIntervalTypeChoice = False
 		PythonEarTrainer.octaveChoices = []
 		PythonEarTrainer.noteChoices = []
-		gameModeNumber = input("Welcome. This program supports four games. Enter the number of the game you'd you like to play.\nYour options are:\n\t1) Guess Random Note\n\t\tA random pitch is played and you have to guess the note.\n\t2) Guess Random Interval\n\t\tA random interval is played and you have to guess the first note, the second note, and the interval between the two.\n\t3) Guess Random Chord\n\t\tA random chord is played and you have to guess either the root, the chord type, or both\n\t4) Guess Missing Chord Tone\n\t\tYou choose a chord. It's played once. It's then played again, but this time with one of the notes missing. You have to guess which note is missing\n")
+		gameModeNumber = input("Welcome. This program supports four games. Enter the number of the game you'd you like to play.\nYour options are:\n\t1) Guess Random Note\n\t\tA random pitch is played and you have to guess the note.\n\t2) Guess Random Interval\n\t\tA random interval is played and you have to guess the first note, the second note, and the interval between the two.\n\t3) Guess Random Chord\n\t\tA random chord is played and you have to guess either the root, the chord type, or both\n\t4) Guess Missing Chord Tone\n\t\tYou choose a chord. It's played once. It's then played again, but this time with one of the notes missing. You have to guess which note is missing\n\n")
 		if ( gameModeNumber not in gameModes.keys() ):
 			raise ValueError("Didn't recognize selection.  Possible values are: " + gameModes.keys())
 		
@@ -249,17 +249,13 @@ class PythonEarTrainer:
 					print("\nAnswer wasn't 'Y' or 'N'. Will default to Y ")
 
 				# TODO have user input the possible amount of missing tones to subtract from chord
-				# will always need to guess the chord type if trying to identify a missing note
-				if( PythonEarTrainer.isGameModeGuessMissingChordTone(PythonEarTrainer.gameMode) ):
+				guessChordType = input("\nWould you like to guess the chord type of the chord? Enter 'Y' for yes, 'N' for no ")
+				if( guessChordType.lower() == 'n' ):
+					PythonEarTrainer.guessChordType = False
+				elif (guessChordType.lower() == 'y' ):
 					PythonEarTrainer.guessChordType = True
 				else:
-					guessChordType = input("\nWould you like to guess the chord type of the chord? Enter 'Y' for yes, 'N' for no ")
-					if( guessChordType.lower() == 'n' ):
-						PythonEarTrainer.guessChordType = False
-					elif (guessChordType.lower() == 'y' ):
-						PythonEarTrainer.guessChordType = True
-					else:
-						print("\nAnswer wasn't 'Y' or 'N'. Will default to Y ")
+					print("\nAnswer wasn't 'Y' or 'N'. Will default to Y ")
 
 			# both intervals and chords have the option to include inversions
 			invertChordOrInterval = input("\nY/N Do you want to include inversions? ")
@@ -354,6 +350,7 @@ class PythonEarTrainer:
 					continue
 
 			print("\nThat chord was a: " + str(randomChord))
+			print("\n")
 
 			if PythonEarTrainer.guessRootOfChord:
 				if(notes.note_to_int(rootGuess) == notes.note_to_int(randomChord.randomRoot)):
@@ -388,31 +385,87 @@ class PythonEarTrainer:
 		# RandomChord toString = '{self.randomRoot} {self.chordName}: Tones={self.chordTones}, note objects = {self.chordTonesAsNoteObjects}'
 			# ex) C minor triad: Tones=['C', 'Eb', 'G'], note objects = ['C-2', 'Eb-2', 'G-2']
 		# RandomChord constructor = def __init__(self, randomRoot, chordTones, chordTonesAsNoteObjects, chordName)
-		randomChordChordTones = randomChord.chordTones
-		randomChordChordTonesAsNoteObjects = randomChord.chordTonesAsNoteObjects
+		#creating separate lists here bc otherwise python will create an object reference and the tone will be removed from both random chords
+		randomChordChordTones = [x for x in randomChord.chordTones]
+		randomChordChordTonesAsNoteObjects = [x for x in randomChord.chordTonesAsNoteObjects]
 		# randomChordChordTones and randomChordChordTonesAsNoteObjects should be the same length
+		# first argument is1 so we never remove the root
 		indexOfNoteToRemove = random.randint(1, len(randomChordChordTonesAsNoteObjects) - 1)
 		randomChordChordTones.pop(indexOfNoteToRemove)
 		randomChordChordTonesAsNoteObjects.pop(indexOfNoteToRemove)
 		return RandomChord(randomChord.randomRoot, randomChordChordTones, randomChordChordTonesAsNoteObjects, randomChord.chordName)
+
+	@staticmethod
+	def figureOutMissingTone(tonesOfRandomChord, tonesOfRandomChordWithAMisingTone):
+		# return tone in tonesOfRandomChord that's not in tonesOfRandomChordWithAMisingTone
+		return set(tonesOfRandomChord).symmetric_difference(set(tonesOfRandomChordWithAMisingTone)).pop()
 
 	# WIP
 	@staticmethod
 	def playAndGuessMissingChordTone():
 		randomChord = PythonEarTrainer.getRandomChord()
 		randomChordWithMissingTone = PythonEarTrainer.getRandomChordWithMissingTone(randomChord)
+		missingTone = PythonEarTrainer.figureOutMissingTone(randomChord.chordTones, randomChordWithMissingTone.chordTones)
+		print(randomChord.chordTonesAsNoteObjects)
+		print(randomChordWithMissingTone.chordTonesAsNoteObjects)
 
 		b = Bar()
 		# placing each chord as two half notes in the bar
-		b.place_notes(randomChord.chordTones, 2)
-		b.place_notes(randomChordWithMissingTone.chordTones, 2)
+		b.place_notes(randomChord.chordTonesAsNoteObjects, 2)
+		b.place_notes(randomChordWithMissingTone.chordTonesAsNoteObjects, 2)
+		rootGuess = ""
+		nameGuess = ""
+		missingToneGuess = ""
 		while True:
 			# play bar on channel 1 at 60bpm
-			# plays half note four times
 			fluidsynth.play_Bar(b, 1, 60)
 			fluidsynth.play_Bar(b, 1, 60)
 			fluidsynth.play_Bar(b, 1, 60)
-		return "TODO WIP"
+			fluidsynth.play_Bar(b, 1, 60)
+
+			if (PythonEarTrainer.guessRootOfChord and not rootGuess) or rootGuess.lower() == "r":
+				rootGuess = input("\nWhat do you think the root of this chord is? Press R to repeat it ")
+				if(rootGuess.lower() == "r"):
+					continue
+
+			if (PythonEarTrainer.guessChordType and not nameGuess) or nameGuess.lower() == "r":
+				nameGuess = input("\nExcluding the root, what is the name of this chord?\nYour choices are:\n\t" + str(PythonEarTrainer.chordOrIntervalTypeChoices) + "\nPress R to repeat it ")
+				if(nameGuess.lower() == "r"):
+					continue
+
+			if not missingToneGuess or missingToneGuess.lower() == "r":
+				missingToneGuess = input("\nWhich note was missing from this chord? Press R to repeat it ")
+				if(missingToneGuess.lower() == "r"):
+					continue
+
+			print("\nThe original chord was: " + str(randomChord))
+			print("\nThe chord with a missing tone was: " + str(randomChordWithMissingTone))
+			print("\n")
+
+			if PythonEarTrainer.guessRootOfChord:
+				if(notes.note_to_int(rootGuess) == notes.note_to_int(randomChord.randomRoot)):
+					PythonEarTrainer.updateStats(1.0)
+					print("You were correct. The root is: " + rootGuess)
+				else:
+					print("Incorrect. You guessed: " + rootGuess + ". The root was: " + randomChord.randomRoot)
+					PythonEarTrainer.updateStats(0.0)
+
+			if PythonEarTrainer.guessChordType:
+				if(nameGuess == randomChord.chordName):
+					PythonEarTrainer.updateStats(1.0)
+					print("You were correct. The chord name is: " + nameGuess)
+				else:
+					print("Incorrect. You guessed: " + nameGuess + ". The chord name was: " + randomChord.chordName)
+					PythonEarTrainer.updateStats(0.0)
+
+			if(missingToneGuess == missingTone):
+				PythonEarTrainer.updateStats(1.0)
+				print("You were correct. The missing tone was: " + missingTone)
+			else:
+				print("Incorrect. You guessed: " + missingToneGuess + ". The missing tone was: " + missingTone)
+				PythonEarTrainer.updateStats(0.0)
+		
+			break
 
 	@staticmethod
 	def getRandomRoot():
@@ -435,7 +488,8 @@ class PythonEarTrainer:
 			# plays half note four times 
 			fluidsynth.play_Bar(b, 1, 60)
 			fluidsynth.play_Bar(b, 1, 60)
-			guess = input("What note do you think this is? Press R to repeat it ")
+			guess = input("\nWhat note do you think this is? Press R to repeat it ")
+			print("\n")
 			if guess.lower() == "r":
 				continue
 			elif not notes.is_valid_note(guess):
@@ -502,7 +556,7 @@ class PythonEarTrainer:
 			fluidsynth.play_Bar(b, 1, 60)
 			fluidsynth.play_Bar(b, 1, 60)
 			if not firstNoteGuess or firstNoteGuess.lower() == "r":
-				firstNoteGuess = input("What do you think the first note was? Press R to hear it again ")
+				firstNoteGuess = input("\nWhat do you think the first note was? Press R to hear it again ")
 				if firstNoteGuess.lower() == "r":
 					continue
 				elif not notes.is_valid_note(firstNoteGuess):
