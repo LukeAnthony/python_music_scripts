@@ -7,6 +7,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
+import sys
 
 # contains all logic to plot Plottable objects
 class FretboardPlotter:
@@ -15,6 +16,19 @@ class FretboardPlotter:
 	whole_notes_flats = ['C' , 'Db', 'D', 'Eb', 'E', 'F', 'Gb' , 'G', 'Ab', 'A', 'Bb', 'B']*3
 	whole_notes_sharps = ['C' , 'C#', 'D', 'D#', 'E', 'F', 'F#' , 'G', 'G#', 'A', 'A#', 'B']*3
 	strings = {}
+	tunings = {
+		"guitar" : {
+			"standard" : "EADGBE",
+			"dropD" : "DADGBE"
+		},
+		"bass" : {
+			"standard" : "EADG",
+			"dropD" : "DADG",
+			"fiveStringStandard" : "BEADG",
+			"fiveStringDropD" : "BDADG",
+			"fiveStringDropA": "AEADG",
+		}
+	}
 
 	accidentalsToKeysMap = {
 		"sharps" : ['C', 'Am', 'G', 'Em', 'D', 'Bm', 'A', 'F#m', 'E', 'C#m', 'B', 'G#m', 'F#', 'D#m', 'C#', 'A#m',],
@@ -29,97 +43,100 @@ class FretboardPlotter:
 
 		# major triad
 		#       [C  E  G]
-		"maj" : [0, 4, 7],
+		"maj (major triad)" : ("(R 3rd 5th)", [0, 4, 7]),
 		# major 7th
 		#       [C  E  G  B]
-		"maj7": [0, 4, 7, 11],
+		"maj7 (major 7th)": ("(R 3rd 5th 7th)", [0, 4, 7, 11]),
 		# minor triad
 		#	  C  Eb G
-		"m": [0, 3, 7],
+		"m (minor triad)": ("(R b3rd 5th)", [0, 3, 7]),
 		# minor 7th
 		#     C  Eb  G  Bb
-		"m7": [0, 3, 7, 10],
+		"m7 (minor 7th)": ("(R b3rd 5th b7th)", [0, 3, 7, 10]),
 		# minor 7th flat 5 (aka half-diminished)
 		#     C  Eb  Gb  Bb
-		"m7b5": [0, 3, 6, 10],
+		"m7b5 (minor 7th flat 5 (aka half-diminished))": ("(R b3rd b5th b7th)", [0, 3, 6, 10]),
 		# minor-major seventh
 		# 		C  Eb G  B
-		"m/M7": [0, 3, 7, 11],
+		"m/M7 (minor-major seventh)": ("(R b3rd 5th 7th)", [0, 3, 7, 11]),
 		# diminished triad
 		#	  C  Eb  Gb
-		"dim": [0, 3,  6],
+		"dim (diminished triad)": ("(R b3rd b5th)", [0, 3,  6]),
 		# minor sixth
 		# 	   C  Eb G  A
-		"m6": [0, 3, 7, 9],
+		"m6 (minor sixth)": ("(R b3rd 5th 6th)", [0, 3, 7, 9]),
 		# major sixth
 		# 	   C  E  G  A
-		"M6": [0, 4, 7, 9],
+		"M6 (major sixth)": ("(R 3rd 5th 6th)", [0, 4, 7, 9]),
 		# dominant 7
 		# 	  C  E  G  Bb
-		"7": [0, 4, 7, 10],
+		"7 (dominant 7)": ("(R 3rd 5th b7th)", [0, 4, 7, 10]),
 		# diminished seventh
 		#   	 C  Eb Gb Bbb
-		"dim7": [0, 3, 6, 9],
+		"dim7 (dim7)": ("(R b3rd b5th bb7th)", [0, 3, 6, 9]),
 		# major 9th
 		# 		 C  E  G  B   D
-		"maj9": [0, 4, 7, 11, 2],
+		"maj9 (major 9th)": ("(R 3rd 5th 7th 9th)", [0, 4, 7, 11, 2]),
 		# minor 9th
 		# 		 C  Eb G  Bb  D
-		"m9":   [0, 3, 7, 10, 2],
+		"m9 (minor 9th)":   ("(R b3rd 5th b7th 9th)", [0, 3, 7, 10, 2]),
 		# dominant 9th
 		# 		C  E  G  Bb  D
-		"9":   [0, 4, 7, 10, 2],
+		"9 (dominant 9th)":   ("(R 3rd 5th b7th 9th)", [0, 4, 7, 10, 2]),
 		# 11th 
 		# 	   C  E  G  Bb  D  F
-		"11": [0, 4, 7, 10, 2, 5],
+		"11 (11th)": ("(R 3rd 5th b7th 9th 11th)", [0, 4, 7, 10, 2, 5]),
 		# minor 11th
 		# 		  C  Eb G  Bb  D  F
-		"m11":   [0, 3, 7, 10, 2, 5],
+		"m11 (minor 11th)":   ("(R b3rd 5th b7th 9th 11th)", [0, 3, 7, 10, 2, 5]),
 		# 13th (dominant 13th)
 		#        C  E  G  Bb  D  F  A
-		"13":   [0, 4, 7, 10, 2, 5, 9],
+		"13 (13th (dominant 13th))":   ("(R 3rd 5th b7th 9th 11th 13th)", [0, 4, 7, 10, 2, 5, 9]),
 		# minor 13th
 		# 		  C  Eb G  Bb  D  F  A
-		"m13":   [0, 3, 7, 10, 2, 5, 9],
+		"m13 (minor 13th)":   ("(R b3rd 5th b7th 9th 11th 13th)", [0, 3, 7, 10, 2, 5, 9]),
 		# major 13th
 		# 		  C  E  G  B   D  A
-		"maj13": [0, 4, 7, 11, 2, 9],
+		"maj13 (major 13th)": ("(R 3rd 5th 7th 9th 13th)", [0, 4, 7, 11, 2, 9]),
 		# augmented triad
 		# 		C  E  G#
-		"aug": [0, 4, 8],
+		"aug (augmented triad)": ("(R 3rd #5th)", [0, 4, 8]),
 		# augmented seventh/augmented minor seventh
 		# 		 C  E  G#  Bb
-		"m7+": [0, 4, 8, 10],
+		"m7+ (augmented seventh/augmented minor seventh)": ("(R 3rd #5th b7th)", [0, 4, 8, 10]),
 		# augmented major seventh
 		# 		 C   E  G#  B
-		"M7+": [0, 4, 8, 11],
+		"M7+ (augmented major seventh)": ("(R 3rd #5th 7th)", [0, 4, 8, 11]),
 		# suspended second triad
 		#		 C  D  G
-		"sus2": [0, 2, 7],
+		"sus2 (suspended second triad)": ("(R 2nd 5th)", [0, 2, 7]),
 		# suspended triad/suspended fourth triad
 		#		C  F  G
-		"sus": [0, 5, 7],
+		"sus (suspended triad/suspended fourth triad)": ("(R 4th 5th)", [0, 5, 7]),
 		# suspended seventh
 		# 		  C  F  G  Bb
-    	"7sus4": [0, 5, 7, 11],
+    	"7sus4 (suspended seventh)": ("(R 4th 5th b7th)", [0, 5, 7, 10]),
+		# same as above suspended seventh
+		# 		  C  F  G  Bb
+    	"dom7sus4 (dominant suspended seventh)": ("(R 4th 5th b7th)", [0, 5, 7, 10]),
     	# suspended flat ninth/suspended fourth flat ninth
     	#     C  F  G  Db
-    	"susb9": [0, 5, 7, 1],
+    	"susb9 (suspended flat ninth/suspended fourth flat ninth)": ("(R 4th 5th b9th)", [0, 5, 7, 1]),
     	# dominant flat ninth
     	#    C  E  G  Bb  Db
-    	"": [0, 4, 7, 10, 1],
+    	"7b9 (dominant flat ninth)": ("(R 3rd 5th b7th b9th)", [0, 4, 7, 10, 1]),
     	# dominant sharp ninth
     	# 	 C  E  G  Bb  D#
-    	"": [0, 4, 7, 10, 3],
+    	"7#9 (dominant sharp ninth)": ("(R 3rd 5th b7th #9th)", [0, 4, 7, 10, 3]),
     	# dominant flat five
     	#   C   E  Gb  Bb
-    	"": [0, 4, 6, 10],
+    	"7b5 (dominant flat five)": ("(R 3rd b5th b7th)", [0, 4, 6, 10]),
     	# sixth_ninth
     	#    C  E  G  A  D
-    	"": [0, 4, 7, 9, 2],
+    	"6/9 (sixth_ninth)": ("(R 3rd 5th 6th 9th)", [0, 4, 7, 9, 2]),
     	# hendrix chord (7b12)
     	#    C  E  G  Bb  Eb
-    	"": [0, 4, 7, 10, 3]
+    	"7b12 (hendrix)": ("(R 3rd 5th b7th #9th)", [0, 4, 7, 10, 3])
 	}
 
 	scalesToScaleIndexesDictionary = {
@@ -128,33 +145,33 @@ class FretboardPlotter:
 		# maj scale notes: 	   1     	   2          3    4           5          6          7
 
 		#		   C  D  E  F  G  A  B
-		"major" : [0, 2, 4, 5, 7, 9, 11],
+		"major" : ("(R 2nd 3rd 4th 5th 6th 7th)", [0, 2, 4, 5, 7, 9, 11]),
 		#          C  D  Eb F  G  Ab  Bb
-		"minor" : [0, 2, 3, 5, 7, 8, 10],
+		"minor" : ("(R 2nd b3rd 4th 5th b6th b7th)", [0, 2, 3, 5, 7, 8, 10]),
 		#          		   C  D  Eb F  G  Ab  B
-		"harmonic minor": [0, 2, 3, 5, 7, 8, 11],
+		"harmonic minor": ("(R 2nd b3rd 4th 5th b6th 7th)", [0, 2, 3, 5, 7, 8, 11]),
 		#         	 	  C  D  Eb F  G  A  B
-		"melodic minor": [0, 2, 3, 5, 7, 9, 11],
+		"melodic minor": ("(R 2nd b3rd 4th 5th 6th 7th)", [0, 2, 3, 5, 7, 9, 11]),
 		#          C  D  Eb F  G  A  Bb
-		"dorian": [0, 2, 3, 5, 7, 9, 10],
+		"dorian": ("(R 2nd b3rd 4th 5th 6th b7th)", [0, 2, 3, 5, 7, 9, 10]),
 		#		   	 C  Db Eb F  G  Ab Bb 
-		"phrygian": [0, 1, 3, 5, 7, 8, 10],
+		"phrygian": ("(R b2nd b3rd 4th 5th b6th b7th)", [0, 1, 3, 5, 7, 8, 10]),
 		#		   C  D  E  F#  G  A  B
-		"lydian": [0, 2, 4, 6, 7, 9, 11],
+		"lydian": ("(R 2nd 3rd #4th 5th 6th 7th)", [0, 2, 4, 6, 7, 9, 11]),
 		#			   C  D  E  F  G  A  Bb
-		"mixolydian": [0, 2, 4, 5, 7, 9, 10],
+		"mixolydian": ("(R 2nd 3rd 4th 5th 6th b7th)", [0, 2, 4, 5, 7, 9, 10]),
 		#           C  Db  Eb  F  Gb  Ab  Bb
-		"locrian": [0, 1, 3, 5, 6, 8, 10],
+		"locrian": ("(R b2nd b3rd 4th b5th b6th b7th)", [0, 1, 3, 5, 6, 8, 10]),
 		#			  C   Db D  Eb E  F  Gb G  Ab A  Bb  B 
-		"chromatic": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+		"chromatic": ("(R b2nd 2nd b3rd 3rd 4th b5th 5th b6th 6th b7th 7th)", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
 		#					 C  D  E  G  A
-		"major pentatonic": [0, 2, 4, 7, 9],
+		"major pentatonic": ("(R 2nd 3rd 5th 6th)", [0, 2, 4, 7, 9]),
 		#					 C  Eb F  G  Bb
-		"minor pentatonic": [0, 3, 5, 7, 10],
+		"minor pentatonic": ("(R b3rd 4th 5th b7th)", [0, 3, 5, 7, 10]),
 		#				C  D  Eb E  G  A
-		"major blues": [0, 2, 3, 4, 7, 9],
+		"major blues": ("(R 2nd b3rd 3rd 5th 6th)", [0, 2, 3, 4, 7, 9]),
 		#				C  Eb F  Gb G  Bb
-		"minor blues": [0, 3, 5, 6, 7, 10]
+		"minor blues": ("(R b3rd 4th b5th 5th b7th)", [0, 3, 5, 6, 7, 10])
 	}
 
 	@staticmethod
@@ -166,8 +183,8 @@ class FretboardPlotter:
 		noteAlphabetStartingWithThatRoot = FretboardPlotter.whole_notes_sharps[rootIndex:rootIndex+12] if containsSharps else FretboardPlotter.whole_notes_flats[rootIndex:rootIndex+12]
 		return [noteAlphabetStartingWithThatRoot[i] for i in intervals]
 
-	def populate_strings(standardTuning):
-		strings = {i:0 for i in ('EADGBE' if standardTuning else 'DADGBE')}
+	def populate_strings(instrument, tuning):
+		strings = {i:0 for i in tuning}
 		for i in strings.keys():
 			# combines sharps and flats into a list of tuples with equal accidentals occupying the same index & sharps in position 0 and flats in pos 1
 			# 	[('C', 'C'), ('C#', 'Db'), ('D', 'D'), ('D#', 'Eb'), ('E', 'E'), ('F', 'F'), ('F#', 'Gb'), ('G', 'G'), ('G#', 'Ab').....
@@ -179,8 +196,8 @@ class FretboardPlotter:
 
 	# look at plottable notes being passed in. if sharp look for sharps, if flat look for flats
 	# sharps will always be first element in tuple, flats will always be second element in tuple
-	def find_notes(plottable_notes, plottable, standardTuning):
-		notes_strings = {i:0 for i in ('EADGBE' if standardTuning else 'DADGBE')}
+	def find_notes(plottable_notes, tuning):
+		notes_strings = {i:0 for i in tuning}
 	    # for every string 
 		for string in FretboardPlotter.strings.keys():
 			indexes = []
@@ -200,8 +217,8 @@ class FretboardPlotter:
 
 	@staticmethod
 	#index 0 = right handed plot, index 1 = left handed plot
-	def plot(plottables, graphTitle, filePath, standardTuning, night=True):
-		FretboardPlotter.populate_strings(standardTuning)
+	def plot(plottables, graphTitle, filePath, instrument, tuning, night=True):
+		FretboardPlotter.populate_strings(instrument, tuning)
 		#creating two plots, top right handed, bottom left handed
 		fig, ax = plt.subplots(2, figsize=(21,6))
 		background = ['white', 'black']
@@ -237,7 +254,7 @@ class FretboardPlotter:
 			#ex) notes = ['C', 'E', 'G']
 			notes = FretboardPlotter.get_plottable_notes(plottable)
 			#ex) plottableNootes = {'E': [0, 3, 8, 12, 15, 20], 'A': [3, 7, 10, 15, 19], 'D': [2, 5, 10, 14, 17], 'G': [0, 5, 9, 12, 17]
-			plottableNotes = FretboardPlotter.find_notes(notes, plottable, standardTuning)
+			plottableNotes = FretboardPlotter.find_notes(notes, tuning)
 			# need to combine the dictionary lists together for multiple plottables
 			if len(to_plot) == 0:
 				to_plot = plottableNotes
@@ -248,7 +265,9 @@ class FretboardPlotter:
 		#find_notes returns a map of strings with the indexes of the notes that are in the given scale
 			#ex: to_plot(C major scale) = {'E': [19, 17, 15, 13, 12, 10, 8, 7, 5, 3, 1, 0], 'A': [19, 17, 15, 14, 12, 10, 8, 7, 5, 3, 2, 0]...
 			# below for loop iterates through EADGBE keys of the map
-		for y_val, stringName in zip([1,2,3,4,5,6], 'EADGBE' if standardTuning else 'DADGBE'):
+
+		#need to create a list of 1-n where n is number of strings or the length of the tuning string
+		for y_val, stringName in zip(list(range(1, len(tuning) + 1)), tuning):
 			#  looks up the values corresponding to EADGBE keys of find_notes map aka the indexes of the notes that were in the given scale
 			# ex) iterating through to_plot[E] = [19, 17, 15, 13, 12, 10, 8, 7, 5, 3, 1, 0]
 			for i in to_plot[stringName]:
@@ -281,7 +300,13 @@ class FretboardPlotter:
 			elif index == 1:
 				graph.yaxis.tick_right()
 				graph.set_xticks(np.arange(21)+0.45, np.arange(20,-1,-1))
-			graph.set_yticks(np.arange(1,7), ['E' if standardTuning else 'D', 'A', 'D', 'G', 'B', 'E'])
+			if instrument == "guitar":
+				graph.set_yticks(np.arange(1,7), list(tuning))
+			elif instrument == "bass" and "fiveString" in tuning:
+				 graph.set_yticks(np.arange(1,5),list(tuning))
+			elif instrument == "bass":
+				 graph.set_yticks(np.arange(1,5), list(tuning))
+			else: raise ValueError("{} or {} not recognized as tunings or instruments".format(instrument, tuning))
 		#plt.show()
 		plt.savefig(filePath)
 		plt.close()
@@ -303,62 +328,35 @@ class Plottable:
 
 # END classes
 # ********************************************************************************************************************************************************
-# User Input Logic below
-
-
+# Program Execution Logic Below
 
 # for each note, create every chord and every scale
 allNotes = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb' , 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B' ]
 for note in allNotes:
 	for scale in FretboardPlotter.scalesToScaleIndexesDictionary.keys():
 		listOfPlottables = []
-		graphTitle = "{} {}".format(note, scale)
-		print(note + " " + scale)
-		listOfPlottables.append(Plottable(note,FretboardPlotter.scalesToScaleIndexesDictionary[scale]))
-		# standard tuning
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), True)
-		# drop d tuning
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), False)
+		plottable = Plottable(note,FretboardPlotter.scalesToScaleIndexesDictionary[scale])
+		listOfPlottables.append(plottable)
+		graphTitle = "{} {}\n{}".format(note, scale, FretboardPlotter.get_plottable_notes(plottable))
+		print(graphTitle)
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "guitar", FretboardPlotter.tunings["guitar"]["standard"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "bass", FretboardPlotter.tunings["bass"]["standard"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "bass", FretboardPlotter.tunings["bass"]["fiveStringStandard"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "guitar", FretboardPlotter.tunings["guitar"]["dropD"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "bass", FretboardPlotter.tunings["bass"]["dropD"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "bass", FretboardPlotter.tunings["bass"]["fiveStringDropD"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "bass", FretboardPlotter.tunings["bass"]["fiveStringDropA"])
 	for chord in FretboardPlotter.chordsToChordIndexesDictionary.keys():
 		listOfPlottables = []
-		graphTitle = "{} {}".format(note, scale)
-		print(note + " " + scale)
-		listOfPlottables.append(Plottable(note,FretboardPlotter.chordsToChordIndexesDictionary[chord]))
-		#standard tuning
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), True)
-		# drop d tuning
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), False)
+		plottable = Plottable(note,FretboardPlotter.scalesToScaleIndexesDictionary[chord])
+		listOfPlottables.append(plottable)
+		graphTitle = "{} {}\n{}".format(note, chord, FretboardPlotter.get_plottable_notes(plottable))
+		print(graphTitle)
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "guitar", FretboardPlotter.tunings["guitar"]["standard"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "bass", FretboardPlotter.tunings["bass"]["standard"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "bass", FretboardPlotter.tunings["bass"]["fiveStringStandard"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "guitar", FretboardPlotter.tunings["guitar"]["dropD"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "bass", FretboardPlotter.tunings["bass"]["dropD"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "bass", FretboardPlotter.tunings["bass"]["fiveStringDropD"])
+		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "bass", FretboardPlotter.tunings["bass"]["fiveStringDropA"])
 
-"""
-chordOrScale = input("Would you like to plot a chord(s) or a scale? Type 'C' for chord, 'S' for scale ")
-if chordOrScale.lower() != 'c' and chordOrScale.lower() != 's':
-	raise ValueError("Must enter 'C' or 'S'")
-#if chord
-if chordOrScale.lower() == 'c':
-	while(True):
-		rootChoice = input("What should the root of the chord be? ")
-		if rootChoice not in FretboardPlotter.whole_notes_flats and rootChoice not in FretboardPlotter.whole_notes_sharps:
-			raise ValueError("Must enter valid note")
-		chordChoice = input("What chord would you like to plot? Choices are: " + str(FretboardPlotter.chordsToChordIndexesDictionary.keys()) + " ")
-		if chordChoice not in FretboardPlotter.chordsToChordIndexesDictionary.keys():
-			raise ValueError("Must enter a valid chord name")
-		listOfPlottables.append(Plottable(rootChoice, FretboardPlotter.chordsToChordIndexesDictionary[chordChoice] ))
-		enterAnotherChord = input("Would you like to plot another chord? Type 'Y' for yes, 'N' for no ")
-		if enterAnotherChord.lower() == 'n':
-			break
-	graphTitle = input("What should the title of the graph be?")
-	print(len(listOfPlottables))
-#if scale
-if chordOrScale.lower() == 's':
-	rootChoice = input("What should the root of the scale be? ")
-	if rootChoice not in FretboardPlotter.whole_notes_flats and rootChoice not in FretboardPlotter.whole_notes_sharps:
-		raise ValueError("Must enter valid note")
-	scaleChoice = input("What scale would you likee to plot? Choices are: " + str(FretboardPlotter.scalesToScaleIndexesDictionary.keys()) + " ")
-	if scaleChoice not in FretboardPlotter.scalesToScaleIndexesDictionary.keys():
-		raise ValueError("Must enter a valid scale name")
-	graphTitle = input("What should the title of the graph be? ")
-	listOfPlottables.append(Plottable(rootChoice, FretboardPlotter.scalesToScaleIndexesDictionary[scaleChoice] ))
-
-FretboardPlotter.plot(listOfPlottables, graphTitle)
-
-"""
