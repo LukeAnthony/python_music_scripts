@@ -217,7 +217,16 @@ class FretboardPlotter:
 
 	@staticmethod
 	#index 0 = right handed plot, index 1 = left handed plot
-	def plot(plottables, graphTitle, filePath, instrument, tuning, night=True):
+	def plot(note, scaleOrChord, isScale, outputDestination, filePath, instrument, tuning, night=True):
+		listOfPlottables = []
+		plottable : Plottable = None
+		if isScale:
+			plottable = Plottable(note,FretboardPlotter.scalesToScaleIndexesDictionary[scaleOrChord])
+		else:
+			plottable = Plottable(note,FretboardPlotter.chordsToChordIndexesDictionary[scaleOrChord])
+		listOfPlottables.append(plottable)
+		graphTitle = "{} {}\n{}".format(note, scaleOrChord, FretboardPlotter.get_plottable_notes(plottable))
+
 		FretboardPlotter.populate_strings(instrument, tuning)
 		#creating two plots, top right handed, bottom left handed
 		fig, ax = plt.subplots(2, figsize=(21,6))
@@ -331,32 +340,31 @@ class Plottable:
 # Program Execution Logic Below
 
 # for each note, create every chord and every scale
+outputDestination = sys.argv[1]
+guitar = "guitar"
+bass = "bass"
+standardTuning = "standard"
+dropDTuning = "dropD" 
+fiveStringStandardTuning = "fiveStringStandard"
+fiveStringDropDTuning = "fiveStringDropD" 
+fiveStringDropATuning = "fiveStringDropA"
+
 allNotes = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb' , 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B' ]
 for note in allNotes:
 	for scale in FretboardPlotter.scalesToScaleIndexesDictionary.keys():
-		listOfPlottables = []
-		plottable = Plottable(note,FretboardPlotter.scalesToScaleIndexesDictionary[scale])
-		listOfPlottables.append(plottable)
-		graphTitle = "{} {}\n{}".format(note, scale, FretboardPlotter.get_plottable_notes(plottable))
-		print(graphTitle)
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "guitar", FretboardPlotter.tunings["guitar"]["standard"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "bass", FretboardPlotter.tunings["bass"]["standard"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "bass", FretboardPlotter.tunings["bass"]["fiveStringStandard"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "guitar", FretboardPlotter.tunings["guitar"]["dropD"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "bass", FretboardPlotter.tunings["bass"]["dropD"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "bass", FretboardPlotter.tunings["bass"]["fiveStringDropD"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, scale), "bass", FretboardPlotter.tunings["bass"]["fiveStringDropA"])
+		FretboardPlotter.plot(note, FretboardPlotter.scalesToScaleIndexesDictionary[scale], True, outputDestination.format(note, scale), guitar, FretboardPlotter.tunings[guitar][standardTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.scalesToScaleIndexesDictionary[scale], True, outputDestination.format(note, scale), bass, FretboardPlotter.tunings[bass][standardTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.scalesToScaleIndexesDictionary[scale], True, outputDestination.format(note, scale), bass, FretboardPlotter.tunings[bass][fiveStringStandardTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.scalesToScaleIndexesDictionary[scale], True, outputDestination.format(note, scale), guitar, FretboardPlotter.tunings[guitar][dropDTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.scalesToScaleIndexesDictionary[scale], True, outputDestination.format(note, scale), bass, FretboardPlotter.tunings[bass][dropDTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.scalesToScaleIndexesDictionary[scale], True, outputDestination.format(note, scale), bass, FretboardPlotter.tunings[bass][fiveStringDropDTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.scalesToScaleIndexesDictionary[scale], True, outputDestination.format(note, scale), bass, FretboardPlotter.tunings[bass][fiveStringDropATuning])
 	for chord in FretboardPlotter.chordsToChordIndexesDictionary.keys():
-		listOfPlottables = []
-		plottable = Plottable(note,FretboardPlotter.scalesToScaleIndexesDictionary[chord])
-		listOfPlottables.append(plottable)
-		graphTitle = "{} {}\n{}".format(note, chord, FretboardPlotter.get_plottable_notes(plottable))
-		print(graphTitle)
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "guitar", FretboardPlotter.tunings["guitar"]["standard"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "bass", FretboardPlotter.tunings["bass"]["standard"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "bass", FretboardPlotter.tunings["bass"]["fiveStringStandard"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "guitar", FretboardPlotter.tunings["guitar"]["dropD"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "bass", FretboardPlotter.tunings["bass"]["dropD"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "bass", FretboardPlotter.tunings["bass"]["fiveStringDropD"])
-		FretboardPlotter.plot(listOfPlottables, graphTitle, "C:/Users/lukeb/Desktop/Fretboard Plotter Pics/{} {}".format(note, chord), "bass", FretboardPlotter.tunings["bass"]["fiveStringDropA"])
+		FretboardPlotter.plot(note, FretboardPlotter.chordsToChordIndexesDictionary[chord], False, outputDestination.format(note, chord), guitar, FretboardPlotter.tunings[guitar][standardTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.chordsToChordIndexesDictionary[chord], False, outputDestination.format(note, chord), bass, FretboardPlotter.tunings[bass][standardTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.chordsToChordIndexesDictionary[chord], False, outputDestination.format(note, chord), bass, FretboardPlotter.tunings[bass][fiveStringStandardTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.chordsToChordIndexesDictionary[chord], False, outputDestination.format(note, chord), guitar, FretboardPlotter.tunings[guitar][dropDTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.chordsToChordIndexesDictionary[chord], False, outputDestination.format(note, chord), bass, FretboardPlotter.tunings[bass][dropDTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.chordsToChordIndexesDictionary[chord], False, outputDestination.format(note, chord), bass, FretboardPlotter.tunings[bass][fiveStringDropDTuning])
+		FretboardPlotter.plot(note, FretboardPlotter.chordsToChordIndexesDictionary[chord], False, outputDestination.format(note, chord), bass, FretboardPlotter.tunings[bass][fiveStringDropATuning])
 
