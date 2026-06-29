@@ -217,7 +217,9 @@ class FretboardPlotter:
 
 	@staticmethod
 	#index 0 = right handed plot, index 1 = left handed plot
-	def plot(note, scaleOrChordDegree, scaleOrChordTuple, filePath, instrument, tuning, night=True):
+	# TODO adjust neck area for different string lengths. Works fine on 6 string, 4 and 5 are a mess
+	# TODO currently generates 20 frets. add 4 more for 24
+	def plot(note, scaleOrChordDegree, scaleOrChordTuple, filePath : str, instrument, tuning, night=True):
 		listOfPlottables = []
 		plottable : Plottable = None
 		# ex scale or chord is a tuple, get right side ("(R 2nd 3rd 4th 5th 6th 7th)", [0, 2, 4, 5, 7, 9, 11])
@@ -227,10 +229,10 @@ class FretboardPlotter:
 
 		FretboardPlotter.populate_strings(instrument, tuning)
 		#creating two plots, top right handed, bottom left handed
-		fig, ax = plt.subplots(2, figsize=(21,6))
+		fig, ax = plt.subplots(2, figsize=(21,len(tuning) + 1))
 		background = ['white', 'black']
-		# creates 6 lines in each plot for the 6 strings
-		for i in range(1,7):
+		# creates lines in each plot for each string
+		for i in range(1,len(tuning)):
 			for index, graph in enumerate(ax):
 				graph.plot([i for a in range(22)])
 				graph.set_axisbelow(True)
@@ -309,15 +311,10 @@ class FretboardPlotter:
 			elif index == 1:
 				graph.yaxis.tick_right()
 				graph.set_xticks(np.arange(21)+0.45, np.arange(20,-1,-1))
-			if instrument == "guitar":
-				graph.set_yticks(np.arange(1,7), list(tuning))
-			elif instrument == "bass" and "fiveString" in tuning:
-				 graph.set_yticks(np.arange(1,5),list(tuning))
-			elif instrument == "bass":
-				 graph.set_yticks(np.arange(1,5), list(tuning))
-			else: raise ValueError("{} or {} not recognized as tunings or instruments".format(instrument, tuning))
+				graph.set_yticks(np.arange(1,len(tuning) + 1), list(tuning))
 		#plt.show()
-		plt.savefig(filePath)
+		# ex 'C major guitar - 6 string EADGBE'
+		plt.savefig(filePath + "/{} {} {} - {} string {}.png".format(note, scaleOrChordDegree, instrument, len(tuning), tuning))
 		plt.close()
 
 # Anything that will be plotted on the fretboard
