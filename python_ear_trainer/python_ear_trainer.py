@@ -311,24 +311,38 @@ GAME_MODES = {
 # Reusable note-picker widget: a grid of 12 toggle buttons, single selection.
 # ---------------------------------------------------------------------------
 class NotePicker(ttk.Frame):
-    def __init__(self, master, label=""):
+    def __init__(self, master, label="", allowed=None):
+        """allowed: an iterable of note names to restrict the choices to. When
+        None, all 12 chromatic notes are shown. Names are matched by pitch class,
+        so sharp/flat spellings are interchangeable."""
         super().__init__(master)
         self.selected = tk.IntVar(value=-1)
         if label:
             ttk.Label(self, text=label).grid(row=0, column=0, columnspan=6, sticky="w", pady=(0, 2))
-        for i, lab in enumerate(NOTE_LABELS):
-            r = 1 + i // 6
-            c = i % 6
+
+        if allowed is None:
+            indices = list(range(len(NOTE_LABELS)))
+        else:
+            allowed_ints = {notes.note_to_int(n) for n in allowed}
+            indices = [i for i in range(len(NOTE_LABELS)) if notes.note_to_int(CHROMATIC[i]) in allowed_ints]
+
+        for slot, i in enumerate(indices):
+            r = 1 + slot // 6
+            c = slot % 6
             ttk.Radiobutton(
-                self, text=lab, value=i, variable=self.selected, style="Toolbutton", width=7
+                self, text=NOTE_LABELS[i], value=i, variable=self.selected, style="Toolbutton", width=7
             ).grid(row=r, column=c, padx=1, pady=1)
+
+        # if there's only one option there's nothing to guess, so pre-select it
+        self._default = indices[0] if len(indices) == 1 else -1
+        self.selected.set(self._default)
 
     def get(self):
         idx = self.selected.get()
         return CHROMATIC[idx] if idx >= 0 else None
 
     def reset(self):
-        self.selected.set(-1)
+        self.selected.set(self._default)
 
 
 # ---------------------------------------------------------------------------
@@ -563,7 +577,10 @@ class EarTrainerApp(tk.Tk):
 
         mode = self.current_mode
         if mode == "note":
-            self.first_picker = NotePicker(self.guess_frame, "Which note did you hear?")
+            self.first_picker = NotePicker(
+                self.guess_frame, "Which note did you hear?",
+                allowed=PythonEarTrainer.noteChoices,
+            )
             self.first_picker.pack(anchor="w")
 
         elif mode == "interval":
@@ -582,7 +599,10 @@ class EarTrainerApp(tk.Tk):
 
         elif mode in ("chord", "missing"):
             if PythonEarTrainer.guessRootOfChord:
-                self.root_picker = NotePicker(self.guess_frame, "Root note")
+                self.root_picker = NotePicker(
+                    self.guess_frame, "Root note",
+                    allowed=PythonEarTrainer.noteChoices,
+                )
                 self.root_picker.pack(anchor="w", pady=(0, 6))
             if PythonEarTrainer.guessChordType:
                 row = ttk.Frame(self.guess_frame)
