@@ -179,7 +179,8 @@ class FretboardPlotter:
 	def get_plottable_notes(plottable):
 		root = plottable.get_root()
 		intervals = plottable.get_intervals()
-		containsSharps = '#' in root
+		# TODO should use accidentals to keys map here
+		containsSharps = root in FretboardPlotter.accidentalsToKeysMap["sharps"]
 		rootIndex = FretboardPlotter.whole_notes_sharps.index(root) if containsSharps else FretboardPlotter.whole_notes_flats.index(root)
 		noteAlphabetStartingWithThatRoot = FretboardPlotter.whole_notes_sharps[rootIndex:rootIndex+12] if containsSharps else FretboardPlotter.whole_notes_flats[rootIndex:rootIndex+12]
 		return [noteAlphabetStartingWithThatRoot[i] for i in intervals]
