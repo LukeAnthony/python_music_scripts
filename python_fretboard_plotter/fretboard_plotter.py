@@ -13,6 +13,7 @@ import sys
 class FretboardPlotter:
 	# multiplying lists by 3 bc of populate strings method. looks 21 notes past the starting point of the strings, 
 	# 	so need to make sure there's enough notes to choose from
+	numFrets = 24
 	whole_notes_flats = ['C' , 'Db', 'D', 'Eb', 'E', 'F', 'Gb' , 'G', 'Ab', 'A', 'Bb', 'B']*3
 	whole_notes_sharps = ['C' , 'C#', 'D', 'D#', 'E', 'F', 'F#' , 'G', 'G#', 'A', 'A#', 'B']*3
 	strings = {}
@@ -191,7 +192,8 @@ class FretboardPlotter:
 			sharpsAndFlats = list(zip(FretboardPlotter.whole_notes_sharps, FretboardPlotter.whole_notes_flats))
 			#start = index of the first tuple containing E|A|D|G in sharpsAndFlats
 			start = [x[0] for x in sharpsAndFlats].index(i)
-			strings[i] = sharpsAndFlats[start:start+21]
+			# +1 for the open string
+			strings[i] = sharpsAndFlats[start:start+FretboardPlotter.numFrets + 1]
 		FretboardPlotter.strings = strings
 
 	# look at plottable notes being passed in. if sharp look for sharps, if flat look for flats
@@ -216,105 +218,107 @@ class FretboardPlotter:
 		return notes_strings
 
 	@staticmethod
-	#index 0 = right handed plot, index 1 = left handed plot
-	# TODO adjust neck area for different string lengths. Works fine on 6 string, 4 and 5 are a mess
-	# TODO currently generates 20 frets. add 4 more for 24
-	def plot(note, scaleOrChordDegree, scaleOrChordTuple, filePath : str, instrument, tuning, night=True):
-		listOfPlottables = []
-		plottable : Plottable = None
-		# ex scale or chord is a tuple, get right side ("(R 2nd 3rd 4th 5th 6th 7th)", [0, 2, 4, 5, 7, 9, 11])
-		plottable = Plottable(note, scaleOrChordTuple[1])
-		listOfPlottables.append(plottable)
-		graphTitle = "{} {}\n{}\n{}".format(note, scaleOrChordDegree, scaleOrChordTuple[0], FretboardPlotter.get_plottable_notes(plottable))
+	def plot(rootNote, scaleOrChordDegree, scaleOrChordTuple, filePath, instrument, tuning, night=True):
+		numFrets = FretboardPlotter.numFrets
+		nStrings = len(tuning)
+		listOfPlottables = [Plottable(rootNote, scaleOrChordTuple[1])]
+		graphTitle = "{} {}\n{}\n{}".format(
+			rootNote, scaleOrChordDegree, scaleOrChordTuple[0],
+			FretboardPlotter.get_plottable_notes(listOfPlottables[0]))
 
 		FretboardPlotter.populate_strings(instrument, tuning)
-		#creating two plots, top right handed, bottom left handed
-		fig, ax = plt.subplots(2, figsize=(21,len(tuning) + 1))
-		background = ['white', 'black']
-		# creates lines in each plot for each string
-		for i in range(1,len(tuning)):
-			for index, graph in enumerate(ax):
-				graph.plot([i for a in range(22)])
-				graph.set_axisbelow(True)
-				#setting height and width of displayed guitar
-				if index == 0:
-					graph.set_xlim([0.45, 21])
-				elif index == 1:
-					graph.set_xlim([0, 20.1])
-				graph.set_ylim([0.4, 6.5])
-				graph.set_facecolor(background[night])
-		
-		#creates the lines to simulate the fretboard in each graph
-		for i in range(1,21):
-			for index, graph in enumerate(ax):
-				# draw gray line completely around 12 fret
-				if (index == 0 and (i == 12 or i ==13)) or (index == 1 and (i == 8 or i == 9)):
-					graph.axvline(x=i, color='gray', linewidth=4.5)
-				# draw gold line before first fret to symbolize open notes
-				elif (i == 1 and index == 0) or (i == 20 and index == 1):
-					graph.axvline(x=i if index == 1 else i-.2, color='gold', linewidth=6.5)
-				else:
-					graph.axvline(x=i, color=background[night-1], linewidth=0.5)
 
-		to_plot  = {}
+		fig, ax = plt.subplots(2, figsize=(max(8, numFrets * 0.9), nStrings + 1))
+		background = ['white', 'black']
+		fretLineColor = background[night - 1]
+
+		# index 0 = right handed, index 1 = left handed
+		for index, graph in enumerate(ax):
+			graph.set_facecolor(background[night])
+			graph.set_axisbelow(True)
+			graph.set_ylim([0.4, nStrings + 0.6])
+			# board ends flush with the last fret; small gap behind the nut for the open labels
+			if index == 0:
+				graph.set_xlim([0.3, numFrets + 0.5])
+			else:
+				graph.set_xlim([-0.5, numFrets - 0.3])
+			# horizontal string lines (one plot call per string keeps the multi-color cycle)
+			for y in range(1, nStrings + 1):
+				graph.plot([-0.7, numFrets + 0.7], [y, y], zorder=1)
+			# vertical fret wires sit halfway between note slots; numFrets wires total
+			# (the nut + inner wires) -- no wire after the last fret
+			for w in range(numFrets):
+				xw = (w + 0.5) if index == 0 else (numFrets - w - 0.5)
+				if w == 0:                       # the nut
+					graph.axvline(x=xw, color='gold', linewidth=5.5, zorder=2)
+				elif w in (11, 12) and numFrets >= 12:  # emphasize the 12th fret
+					graph.axvline(x=xw, color='gray', linewidth=4.0, zorder=2)
+				else:
+					graph.axvline(x=xw, color=fretLineColor, linewidth=0.5, zorder=2)
+
+		# gather note positions
+		to_plot = {}
 		plottableRoots = []
 		for plottable in listOfPlottables:
 			plottableRoots.append(plottable.get_root())
-			#ex) notes = ['C', 'E', 'G']
 			notes = FretboardPlotter.get_plottable_notes(plottable)
-			#ex) plottableNootes = {'E': [0, 3, 8, 12, 15, 20], 'A': [3, 7, 10, 15, 19], 'D': [2, 5, 10, 14, 17], 'G': [0, 5, 9, 12, 17]
 			plottableNotes = FretboardPlotter.find_notes(notes, tuning)
-			# need to combine the dictionary lists together for multiple plottables
 			if len(to_plot) == 0:
 				to_plot = plottableNotes
 			else:
 				for key in to_plot.keys():
 					to_plot[key] += plottableNotes[key]
 
-		#find_notes returns a map of strings with the indexes of the notes that are in the given scale
-			#ex: to_plot(C major scale) = {'E': [19, 17, 15, 13, 12, 10, 8, 7, 5, 3, 1, 0], 'A': [19, 17, 15, 14, 12, 10, 8, 7, 5, 3, 2, 0]...
-			# below for loop iterates through EADGBE keys of the map
+		useFlats = any(pr in FretboardPlotter.accidentalsToKeysMap["flats"] for pr in plottableRoots)
 
-		# TODO need to figure out a way to draw certain strings twice if the tuning calls for it (ex; EADGBE, DADG)
-		# TODO saved a blank diagram for c major
-		#need to create a list of 1-n where n is number of strings or the length of the tuning string
-		for y_val, stringName in zip(list(range(1, len(tuning) + 1)), tuning):
-			#  looks up the values corresponding to EADGBE keys of find_notes map aka the indexes of the notes that were in the given scale
-			# ex) iterating through to_plot[E] = [19, 17, 15, 13, 12, 10, 8, 7, 5, 3, 1, 0]
+		def bubble(graph, x, y, note, isRoot):
+			graph.annotate(
+				note, (x, y), color=('yellow' if isRoot else 'white'),
+				weight='bold', fontsize=(14 if isRoot else 11), ha='center', va='center', zorder=3,
+				bbox=dict(boxstyle='circle,pad=0.32', facecolor='#1f77b4',
+						  edgecolor=('gold' if isRoot else 'none'), linewidth=(2.0 if isRoot else 0.0)))
+
+		# fretted notes only -- skip index 0 (open string); the open note is drawn on the axis
+		for y_val, stringName in zip(range(1, nStrings + 1), tuning):
 			for i in to_plot[stringName]:
-				font = 12
-				color = 'w'
-				circleSize = 0.2
-				# i = 0 means an open string note (E,A,D,G)
-				xLefty = (21 - i - 0.7) if i == 0 else (21 - i - 0.45)
-				xRighty = (i + 0.55) if i == 0 else (i + 0.55)
-				# strings is a map of each string and their notes. 
-				# gets the list of notes for a given string and looks up the note at the index
+				if i == 0:
+					continue
 				noteTuple = FretboardPlotter.strings[stringName][i]
-				note = noteTuple[1] if any(pr in FretboardPlotter.accidentalsToKeysMap["flats"] for pr in plottableRoots) else noteTuple[0]
-				# make the root slightly larger and yellow
-				if(note in plottableRoots):
-					font = 15
-					color = 'yellow'
-					circleSize = 0.3
+				note = noteTuple[1] if useFlats else noteTuple[0]
+				isRoot = note in plottableRoots
 				for index, graph in enumerate(ax):
-					p = mpatches.Circle((xRighty if index == 0 else xLefty, y_val), circleSize)
-					graph.add_patch(p)
-					graph.annotate(note, (xRighty if index == 0 else xLefty, y_val), color=color, weight='bold', fontsize=font, ha='center', va='center')
+					x = i if index == 0 else (numFrets - i)
+					bubble(graph, x, y_val, note, isRoot)
 
 		fig.suptitle(graphTitle)
-		# adding more space between the two graphs
-		plt.subplots_adjust(None, None, None, None, None, 0.5)
+		# reserve title room proportional to figure height so it never overlaps the board
+		plt.subplots_adjust(top=1 - 1.25 / (nStrings + 1), hspace=0.5, left=0.05, right=0.95)
 		for index, graph in enumerate(ax):
-			if index == 0:
-				graph.set_xticks(np.arange(21)+0.45, np.arange(0,21))
-			elif index == 1:
+			if index == 0:                       # right handed: frets 1..numFrets left-to-right
+				graph.set_xticks(range(1, numFrets + 1), range(1, numFrets + 1))
+			else:                                # left handed: frets numFrets..1 left-to-right
 				graph.yaxis.tick_right()
-				graph.set_xticks(np.arange(21)+0.45, np.arange(20,-1,-1))
-				graph.set_yticks(np.arange(1,len(tuning) + 1), list(tuning))
-		#plt.show()
-		# ex 'C major guitar - 6 string EADGBE'
-		plt.savefig(filePath + "/{} {} {} - {} string {}.png".format(note, scaleOrChordDegree, instrument, len(tuning), tuning))
+				graph.set_xticks(range(0, numFrets), range(numFrets, 0, -1))
+			graph.set_yticks(range(1, nStrings + 1), list(tuning))
+
+		# string labels: uniform size/weight for every string; circle the open-string
+		# note when it's in the scale/chord (gold ring + yellow when it's the root)
+		for index, graph in enumerate(ax):
+			for k, label in enumerate(graph.get_yticklabels()):
+				label.set_fontsize(12)
+				label.set_fontweight('bold')
+				stringName = list(tuning)[k]
+				if 0 not in to_plot[stringName]:
+					continue  # open note isn't in the scale/chord -> plain (but same size)
+				openNote = FretboardPlotter.strings[stringName][0][1 if useFlats else 0]
+				isRoot = openNote in plottableRoots
+				label.set_color('yellow' if isRoot else 'white')
+				label.set_bbox(dict(boxstyle='circle,pad=0.3', facecolor='#1f77b4',
+									 edgecolor=('gold' if isRoot else 'none'),
+									 linewidth=(2.0 if isRoot else 0.0)))
+
+		plt.savefig(filePath + "/{} {} {} - {} string {}.png".format(
+			rootNote, str(scaleOrChordDegree).replace("/", "|"), instrument, nStrings, tuning))
 		plt.close()
 
 # Anything that will be plotted on the fretboard
